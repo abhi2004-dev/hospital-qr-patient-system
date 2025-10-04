@@ -1,0 +1,21 @@
+# Environment variables
+.env
+
+# Dependencies
+/node_modules
+/ios/Pods/
+/ios/Flutter/App.framework
+/ios/Flutter/engine
+/.dart_tool/
+
+# Build artifacts
+/build/
+*.apk
+*.aab
+*.ipa
+
+# IDE and OS files
+.idea/
+.vscode/
+*.iml
+*.DS_Store
