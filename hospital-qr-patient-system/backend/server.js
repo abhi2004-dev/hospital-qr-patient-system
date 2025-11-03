@@ -1,35 +1,44 @@
-const express = require('express');
-const dotenv = require('dotenv');
-const mongoose = require('mongoose');
-const cors = require('cors');
+// backend/server.js
+import express from "express";
+import dotenv from "dotenv";
+import mongoose from "mongoose";
+import cors from "cors";
 
-// Load environment variables from .env file
 dotenv.config();
 
 const app = express();
 
 // Middleware
 app.use(cors());
-app.use(express.json()); // To parse JSON bodies
+app.use(express.json());
 
-// Function to connect to MongoDB
-const connectDB = async () => {
-  try {
-    await mongoose.connect(process.env.MONGO_URI);
-    console.log('MongoDB Connected...');
-  } catch (err) {
-    console.error(err.message);
-    // Exit process with failure
-    process.exit(1);
-  }
-};
+// Test route
+app.get("/", (req, res) => {
+  res.send("Hospital QR Patient System Backend ✅");
+});
 
-// Connect to the database
-connectDB();
-
-// A simple test route
-app.get('/', (req, res) => res.send('API Running'));
-
+// MongoDB connection
 const PORT = process.env.PORT || 5000;
+const MONGO_URI = process.env.MONGO_URI;
 
-app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
+if (!MONGO_URI) {
+  console.error("❌ MONGO_URI not found in .env file");
+  process.exit(1);
+}
+
+mongoose
+  .connect(MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => {
+    console.log("✅ MongoDB connected successfully");
+    app.listen(PORT, () =>
+      console.log(`🚀 Server running on http://localhost:${PORT}`)
+    );
+  })
+  .catch((err) => {
+    console.error("❌ MongoDB connection failed:", err.message);
+    process.exit(1);
+  });
+ 
