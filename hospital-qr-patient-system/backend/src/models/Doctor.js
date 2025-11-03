@@ -5,25 +5,34 @@ const doctorSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  email: {
+  specialization: {
     type: String,
     required: true,
+  },
+  phone: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  email: {
+    type: String,
     unique: true,
   },
   password: {
     type: String,
     required: true,
   },
-  specialization: String,
-  hospitalName: String,
-  contactNumber: String,
-  accessLogs: [
-    {
-      patientId: String,
-      accessTime: { type: Date, default: Date.now },
-      action: String, // e.g. "viewed_basic", "viewed_full", "edited"
-    },
-  ],
+  hospitalName: {
+    type: String,
+  },
+  verified: {
+    type: Boolean,
+    default: false,
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
 });
 
 const Doctor = mongoose.model("Doctor", doctorSchema);

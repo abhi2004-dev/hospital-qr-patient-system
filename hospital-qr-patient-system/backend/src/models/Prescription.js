@@ -1,28 +1,35 @@
 import mongoose from "mongoose";
 
 const prescriptionSchema = new mongoose.Schema({
-  patientId: {
+  patient: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Patient",
+    required: true,
+  },
+  doctor: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Doctor",
+    required: true,
+  },
+  diagnosis: {
     type: String,
     required: true,
   },
-  doctorId: {
-    type: String,
-    required: true,
-  },
-  diagnosis: String,
-  medicines: [
+  medications: [
     {
       name: String,
       dosage: String,
+      frequency: String,
       duration: String,
     },
   ],
   notes: String,
-  pdfUrl: String, // link to PDF version
-  createdAt: {
+  prescriptionDate: {
     type: Date,
     default: Date.now,
   },
+  pdfUrl: String, // for the generated PDF file
+  jsonData: Object, // structured prescription format for integration
 });
 
 const Prescription = mongoose.model("Prescription", prescriptionSchema);

@@ -5,21 +5,18 @@ import cors from "cors";
 import patientRoutes from "./src/routes/patientRoutes.js";
 
 dotenv.config();
-
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-// Routes
+// 👇 this line mounts all patient routes
 app.use("/api/patients", patientRoutes);
 
-// Root route
 app.get("/", (req, res) => {
   res.send("Hospital QR Patient System Backend ✅");
 });
 
-// MongoDB connection
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI;
 

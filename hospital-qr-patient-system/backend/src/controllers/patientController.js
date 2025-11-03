@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 // Register a new patient and generate QR code
+
 export const registerPatient = async (req, res) => {
   try {
     const { name, age, gender, phone, address, medicalHistory, password } = req.body;
