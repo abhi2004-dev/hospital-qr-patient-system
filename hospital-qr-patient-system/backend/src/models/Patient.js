@@ -4,7 +4,7 @@ const patientSchema = new mongoose.Schema({
   patientId: {
     type: String,
     required: true,
-    unique: true, // will be used to generate QR code
+    unique: true, // Used for QR linking
   },
   name: {
     type: String,
@@ -13,21 +13,27 @@ const patientSchema = new mongoose.Schema({
   age: Number,
   gender: String,
   bloodGroup: String,
-  phone: String,
+  phone: {
+    type: String,
+    required: true,
+    unique: true,
+  },
   email: String,
   guardianEmail: String,
   address: String,
   allergies: [String],
   lastVisit: Date,
-
-  // Relationship to prescriptions
+  password: {
+    type: String,
+    required: false,
+  },
   prescriptions: [
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Prescription",
     },
   ],
-
+  qrCode: String, // Stores the generated QR Code image as Base64
   createdAt: {
     type: Date,
     default: Date.now,
@@ -35,4 +41,5 @@ const patientSchema = new mongoose.Schema({
 });
 
 const Patient = mongoose.model("Patient", patientSchema);
+
 export default Patient;

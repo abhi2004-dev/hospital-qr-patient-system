@@ -1,18 +1,20 @@
-// backend/server.js
 import express from "express";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 import cors from "cors";
+import patientRoutes from "./src/routes/patientRoutes.js";
 
 dotenv.config();
 
 const app = express();
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 
-// Test route
+// Routes
+app.use("/api/patients", patientRoutes);
+
+// Root route
 app.get("/", (req, res) => {
   res.send("Hospital QR Patient System Backend ✅");
 });
@@ -21,16 +23,8 @@ app.get("/", (req, res) => {
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI;
 
-if (!MONGO_URI) {
-  console.error("❌ MONGO_URI not found in .env file");
-  process.exit(1);
-}
-
 mongoose
-  .connect(MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
+  .connect(MONGO_URI)
   .then(() => {
     console.log("✅ MongoDB connected successfully");
     app.listen(PORT, () =>
@@ -41,4 +35,3 @@ mongoose
     console.error("❌ MongoDB connection failed:", err.message);
     process.exit(1);
   });
- 
