@@ -1,32 +1,23 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-// This is a basic Flutter widget test.
-// This is a basic Flutter widget test.
+// Flutter widget test for the Hospital QR Patient App
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-// Make sure this import points to your main.dart file
 import 'package:patient_app/main.dart';
 
 void main() {
-  testWidgets('Login screen smoke test', (WidgetTester tester) async {
-    // 1. Build the correct app widget: PatientApp
-    await tester.pumpWidget(const PatientApp());
+  testWidgets('App loads splash screen and transitions to login screen',
+      (WidgetTester tester) async {
+    // 1. Build the app (MyApp is your root widget in main.dart)
+    await tester.pumpWidget(const MyApp());
 
-    // 2. Verify that the login screen is showing.
-    // We can do this by looking for the title and the login button.
-    expect(find.text('Patient Login'), findsOneWidget);
-    expect(find.text('Please log in.'), findsOneWidget);
-    expect(find.widgetWithText(ElevatedButton, 'Login'), findsOneWidget);
+    // 2. Verify splash screen elements appear
+    expect(find.text('HEALTH_QR'), findsOneWidget);
+    expect(find.text('Smart Health. Simplified.'), findsOneWidget);
 
-    // 3. Verify no counter elements are present.
-    expect(find.byIcon(Icons.add), findsNothing);
-    expect(find.text('0'), findsNothing);
+    // 3. Simulate time passing for the splash animation to finish
+    await tester.pump(const Duration(seconds: 5));
+
+    // 4. Verify that the Login Screen loaded successfully
+    expect(find.text('Welcome to Login Screen 👋'), findsOneWidget);
   });
 }
