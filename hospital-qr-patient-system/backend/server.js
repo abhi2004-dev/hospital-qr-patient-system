@@ -1,34 +1,23 @@
-import express from "express";
 import dotenv from "dotenv";
-import mongoose from "mongoose";
-import cors from "cors";
-import patientRoutes from "./src/routes/patientRoutes.js";
-
 dotenv.config();
-const app = express();
 
-app.use(cors());
-app.use(express.json());
-
-// 👇 this line mounts all patient routes
-app.use("/api/patients", patientRoutes);
-
-app.get("/", (req, res) => {
-  res.send("Hospital QR Patient System Backend ✅");
-});
+import app from "./src/app.js";
+import mongoose from "mongoose";
 
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI;
 
-mongoose
-  .connect(MONGO_URI)
+if (!MONGO_URI) {
+  console.error("MONGO_URI missing in .env");
+  process.exit(1);
+}
+
+mongoose.connect(MONGO_URI)
   .then(() => {
-    console.log("✅ MongoDB connected successfully");
-    app.listen(PORT, () =>
-      console.log(`🚀 Server running on http://localhost:${PORT}`)
-    );
+    console.log("✅ MongoDB connected");
+    app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
   })
-  .catch((err) => {
-    console.error("❌ MongoDB connection failed:", err.message);
+  .catch(err => {
+    console.error("Mongo connection error:", err.message);
     process.exit(1);
   });

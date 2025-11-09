@@ -1,279 +1,121 @@
 import 'package:flutter/material.dart';
+import '../doctor_app/screens/doctor_register_step1.dart';
 
-/// RoleSelectionScreen
-/// Path: frontend/doctor_app/lib/common/role_selection_screen.dart
-///
-/// Notes:
-/// - Saves you from missing imports by using internal placeholder pages for Doctor/Patient login.
-/// - Replace DoctorLoginPlaceholder / PatientLoginPlaceholder with your real screens later,
-///   or change the Navigator.push(...) to navigate to your actual screen widgets.
-
-class RoleSelectionScreen extends StatelessWidget {
+class RoleSelectionScreen extends StatefulWidget {
   const RoleSelectionScreen({super.key});
+  @override
+  State<RoleSelectionScreen> createState() => _RoleSelectionScreenState();
+}
 
-  // Colors chosen to match your design
-  static const Color bg = Color(0xFFBEEFF3); // light aqua background (tweak if you want)
-  static const Color headingColor = Color(0xFF032859); // deep navy for text
-  static const Color cardColor = Color(0xFF7FA3FF); // bluish-purple card
-  static const Color buttonFill = Color(0xFFE6E6E6); // light grey pill buttons
-  static const Color accent = Color(0xFF004E89); // darker accent (if needed)
+class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
+  String? selectedRole;
+
+  void _continue() {
+    if (selectedRole == 'doctor') {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => const DoctorRegisterStep1()));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Patient app will be available soon.")),
+      );
+    }
+  }
+
+  Widget _roleCard(String label, IconData icon, String value) {
+    final active = selectedRole == value;
+    return GestureDetector(
+      onTap: () => setState(() => selectedRole = value),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(active ? 0.2 : 0.1),
+              blurRadius: active ? 12 : 6,
+              offset: const Offset(0, 4),
+            )
+          ],
+        ),
+        child: Row(
+          children: [
+            CircleAvatar(
+              backgroundColor: const Color(0xFF2EB5E0),
+              radius: 26,
+              child: Icon(icon, color: Colors.white, size: 28),
+            ),
+            const SizedBox(width: 14),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: active ? FontWeight.bold : FontWeight.w500,
+                color: active ? const Color(0xFF032859) : Colors.black87,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    final media = MediaQuery.of(context);
-    final double cardWidth = media.size.width * 0.92;
-    final double cardHeight = media.size.height * 0.30;
-
     return Scaffold(
-      backgroundColor: bg,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          child: SizedBox(
-            height: media.size.height - media.padding.top - media.padding.bottom,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFFE0F7FA), Color(0xFF2EB5E0)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const SizedBox(height: 18),
-
-                // Logo
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  child: Image.asset(
-                    'assets/logo.png',
-                    height: 120,
-                    fit: BoxFit.contain,
-                    errorBuilder: (_, __, ___) => const SizedBox(
-                      height: 120,
-                      child: Center(child: Text('LOGO', style: TextStyle(color: Colors.black45))),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 6),
-
-                // Tagline
+                const SizedBox(height: 16),
+                Image.asset('assets/logo.png', height: 100),
+                const SizedBox(height: 10),
                 const Text(
                   'Health meets Technology..',
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: 15,
                     color: Color(0xFF032859),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-
-                const SizedBox(height: 28),
-
-                // Heading with shadow like the design
-                Text(
+                const SizedBox(height: 40),
+                const Text(
                   'SELECT YOUR ROLE',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 30,
+                  style: TextStyle(
+                    fontSize: 26,
                     fontWeight: FontWeight.bold,
-                    color: headingColor,
-                    letterSpacing: 1.2,
-                    shadows: [
-                      Shadow(
-                        color: Colors.black45,
-                        offset: Offset(2, 3),
-                        blurRadius: 3,
-                      ),
-                    ],
+                    color: Color(0xFF032859),
                   ),
                 ),
-
-                const SizedBox(height: 28),
-
-                // Big rounded card container
-                Center(
-                  child: Container(
-                    width: cardWidth,
-                    height: cardHeight,
-                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
-                    decoration: BoxDecoration(
-                      color: cardColor,
-                      borderRadius: BorderRadius.circular(28),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.08),
-                          blurRadius: 12,
-                          offset: const Offset(0, 6),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        // Patient button
-                        _RoleButton(
-                          label: 'PATIENT',
-                          onTap: () {
-                            // Placeholder navigation -> replace with real screen later
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (_) => const PatientLoginPlaceholder()),
-                            );
-                          },
-                          fillColor: buttonFill,
-                          textColor: Colors.black87,
-                        ),
-
-                        const SizedBox(height: 22),
-
-                        // Doctor button
-                        _RoleButton(
-                          label: 'DOCTOR',
-                          onTap: () {
-                            // Placeholder navigation -> replace with real screen later
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (_) => const DoctorLoginPlaceholder()),
-                            );
-                          },
-                          fillColor: buttonFill,
-                          textColor: Colors.black87,
-                        ),
-                      ],
-                    ),
+                const SizedBox(height: 24),
+                _roleCard('PATIENT', Icons.person, 'patient'),
+                const SizedBox(height: 18),
+                _roleCard('DOCTOR', Icons.medical_services, 'doctor'),
+                const Spacer(),
+                ElevatedButton(
+                  onPressed: selectedRole == null ? null : _continue,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF004E89),
+                    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
+                  child: const Text('Continue', style: TextStyle(fontSize: 16)),
                 ),
-
-                // Add some breathing space at bottom
-                const Spacer(flex: 2),
+                const SizedBox(height: 24),
               ],
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-/// Simple reusable role button used in the card
-class _RoleButton extends StatefulWidget {
-  final String label;
-  final VoidCallback onTap;
-  final Color fillColor;
-  final Color textColor;
-
-  const _RoleButton({
-    required this.label,
-    required this.onTap,
-    required this.fillColor,
-    required this.textColor,
-  });
-
-  @override
-  State<_RoleButton> createState() => _RoleButtonState();
-}
-
-class _RoleButtonState extends State<_RoleButton> with SingleTickerProviderStateMixin {
-  double _scale = 1.0;
-  late AnimationController _anim;
-
-  @override
-  void initState() {
-    super.initState();
-    _anim = AnimationController(vsync: this, duration: const Duration(milliseconds: 120));
-    _anim.addListener(() {
-      setState(() {
-        _scale = 1.0 - (_anim.value * 0.05);
-      });
-    });
-  }
-
-  @override
-  void dispose() {
-    _anim.dispose();
-    super.dispose();
-  }
-
-  void _onTapDown(TapDownDetails d) => _anim.forward();
-  void _onTapUp(TapUpDetails d) {
-    _anim.reverse();
-    widget.onTap();
-  }
-
-  void _onTapCancel() => _anim.reverse();
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: _onTapDown,
-      onTapUp: _onTapUp,
-      onTapCancel: _onTapCancel,
-      child: Transform.scale(
-        scale: _scale,
-        child: Container(
-          width: double.infinity,
-          height: 56,
-          decoration: BoxDecoration(
-            color: widget.fillColor,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.06),
-                blurRadius: 6,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          alignment: Alignment.center,
-          child: Text(
-            widget.label,
-            style: TextStyle(
-              color: widget.textColor,
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 1.0,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Placeholder doctor login page — replace with your real screen later.
-/// Saved here to keep the role-selection screen self-contained and runnable.
-class DoctorLoginPlaceholder extends StatelessWidget {
-  const DoctorLoginPlaceholder({super.key});
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Doctor Login'),
-        backgroundColor: const Color(0xFF004E89),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
-      body: const Center(
-        child: Text('Doctor login screen placeholder\nReplace this widget with your real login screen.',
-            textAlign: TextAlign.center),
-      ),
-    );
-  }
-}
-
-/// Placeholder patient login page — replace with your real screen later.
-class PatientLoginPlaceholder extends StatelessWidget {
-  const PatientLoginPlaceholder({super.key});
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Patient Login'),
-        backgroundColor: const Color(0xFF004E89),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
-      body: const Center(
-        child: Text('Patient login screen placeholder\nReplace this widget with your real patient login screen.',
-            textAlign: TextAlign.center),
       ),
     );
   }

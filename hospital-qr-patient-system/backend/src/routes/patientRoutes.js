@@ -1,14 +1,10 @@
 import express from "express";
-import {
-  registerPatient,
-  loginPatient,
-  getPatientById,
-} from "../controllers/patientController.js";
-
+import { getPatientById, createPatientSample } from "../controllers/patientController.js";
 const router = express.Router();
 
-router.post("/register", registerPatient);
-router.post("/login", loginPatient);
 router.get("/:id", getPatientById);
+
+// sample seed endpoint (dev)
+router.post("/seed", createPatientSample);
 
 export default router;
