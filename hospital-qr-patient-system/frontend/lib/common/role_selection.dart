@@ -23,7 +23,10 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
   Widget _roleCard(String label, IconData icon, String value) {
     final active = selectedRole == value;
     return GestureDetector(
-      onTap: () => setState(() => selectedRole = value),
+      onTap: () => setState(() {
+        selectedRole = value;
+        _continue(); // Trigger navigation or snackbar immediately on selection
+      }),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),
         padding: const EdgeInsets.all(16),
@@ -78,7 +81,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const SizedBox(height: 16),
-                Image.asset('assets/logo.png', height: 100),
+                Image.asset('assets/logo.png', height: 140), // Increased logo size
                 const SizedBox(height: 10),
                 const Text(
                   'Health meets Technology..',
@@ -102,16 +105,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
                 const SizedBox(height: 18),
                 _roleCard('DOCTOR', Icons.medical_services, 'doctor'),
                 const Spacer(),
-                ElevatedButton(
-                  onPressed: selectedRole == null ? null : _continue,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF004E89),
-                    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  child: const Text('Continue', style: TextStyle(fontSize: 16)),
-                ),
-                const SizedBox(height: 24),
+                // Removed the ElevatedButton and SizedBox here.
               ],
             ),
           ),
