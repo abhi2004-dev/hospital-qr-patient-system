@@ -1,12 +1,10 @@
 import mongoose from "mongoose";
 
 const doctorSchema = new mongoose.Schema({
-  name: String,
-  email: { type: String, unique: true },
-  password: String,
-  specialization: String,
-  hospital: String,
-  userId: String,
+  name: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  specialization: { type: String },
   createdAt: { type: Date, default: Date.now }
 });
 

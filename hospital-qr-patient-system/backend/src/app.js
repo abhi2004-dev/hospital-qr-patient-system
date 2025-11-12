@@ -1,21 +1,23 @@
 import express from "express";
 import cors from "cors";
 import authRoutes from "./routes/authRoutes.js";
-import patientRoutes from "./routes/patientRoutes.js";
 import doctorRoutes from "./routes/doctorRoutes.js";
-import prescriptionRoutes from "./routes/prescriptionRoutes.js";
+import patientRoutes from "./routes/patientRoutes.js";
 
 const app = express();
+
+// Middleware
 app.use(cors());
 app.use(express.json());
 
+// Test route
+app.get("/", (req, res) => {
+  res.send("Hospital QR Backend ✅");
+});
+
 // API routes
 app.use("/api/auth", authRoutes);
-app.use("/api/patients", patientRoutes);
-app.use("/api/doctors", doctorRoutes);
-app.use("/api/prescriptions", prescriptionRoutes);
-
-// test
-app.get("/", (req, res) => res.send({ success: true, message: "Hospital QR Backend" }));
+app.use("/api/doctor", doctorRoutes);
+app.use("/api/patient", patientRoutes);
 
 export default app;
