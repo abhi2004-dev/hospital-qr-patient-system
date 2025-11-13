@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'common/splash_screen.dart';
-import 'utils/constants.dart';
+import 'doctor_app/utils/constants.dart';
 
 void main() {
   runApp(const HospitalQRApp());

@@ -1,7 +1,15 @@
+import 'package:flutter/material.dart';
+
 const String appName = "Hospital QR Doctor System";
 
-/// API Endpoints
-const String baseUrl = "http://localhost:5000/api"; // backend URL for dev
+/// API BASE URL — your laptop IPv4 + backend port (NO TRAILING /api)
+const String baseUrl = "http://192.168.122.251:5000";
 
 /// Storage Keys
 const String tokenKey = "doctor_token";
+
+class AppColors {
+  static const Color primary = Color(0xFF1A73E8);
+  static const Color secondary = Color(0xFF1565C0);
+  static const Color accent = Color(0xFF42A5F5);
+}

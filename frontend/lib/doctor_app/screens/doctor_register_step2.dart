@@ -25,17 +25,42 @@ class _DoctorRegisterStep2State extends State<DoctorRegisterStep2> {
     if (f != null) setState(() => _photo = File(f.path));
   }
 
-  void _register() async {
-    if (passCtrl.text != confirmCtrl.text) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Passwords do not match'))); return; }
-    setState(() => loading = true);
-    final res = await ApiService.registerDoctor(widget.name, widget.email, passCtrl.text);
-    setState(() => loading = false);
-    if (res != null && res['success'] == true) {
-      Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const DoctorLoginScreen()), (r)=>false);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(res?['message'] ?? 'Register failed')));
-    }
+ void _register() async {
+  if (passCtrl.text != confirmCtrl.text) {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(const SnackBar(content: Text('Passwords do not match')));
+    return;
   }
+
+  if (licenseCtrl.text.isEmpty) {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(const SnackBar(content: Text('Enter specialization / license')));
+    return;
+  }
+
+  setState(() => loading = true);
+
+  final res = await ApiService.registerDoctor(
+    widget.name,
+    widget.email,
+    passCtrl.text,
+    licenseCtrl.text, // specialization
+  );
+
+  setState(() => loading = false);
+
+  if (res != null && res['success'] == true) {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const DoctorLoginScreen()),
+      (r) => false,
+    );
+  } else {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(res?['message'] ?? 'Register failed')));
+  }
+}
+
 
   @override
   Widget build(BuildContext context) {
