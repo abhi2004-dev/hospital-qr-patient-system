@@ -8,7 +8,7 @@ class OTPRequestScreen extends StatelessWidget {
       body: Padding(padding: const EdgeInsets.all(18), child: Column(children: [
         const Text('Enter OTP sent to patient', style: TextStyle(color: Colors.white)),
         const SizedBox(height: 12),
-        TextField(decoration: const InputDecoration(hintText: 'OTP', filled:true, fillColor: Colors.white)),
+        const TextField(decoration: InputDecoration(hintText: 'OTP', filled:true, fillColor: Colors.white)),
         const SizedBox(height: 12),
         ElevatedButton(onPressed: ()=>Navigator.pop(context), child: const Text('Verify'))
       ])));

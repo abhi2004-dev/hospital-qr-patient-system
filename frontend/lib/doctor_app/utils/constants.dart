@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 const String appName = "Hospital QR Doctor System";
 
 /// API BASE URL — your laptop IPv4 + backend port (NO TRAILING /api)
-const String baseUrl = "http://192.168.122.251:5000";
+const String baseUrl = "http://172.20.10.2:5000";
 
 /// Storage Keys
 const String tokenKey = "doctor_token";

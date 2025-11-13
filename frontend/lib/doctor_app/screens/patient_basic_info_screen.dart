@@ -13,11 +13,11 @@ class PatientBasicInfoScreen extends StatelessWidget {
       body: Padding(
         padding: const EdgeInsets.all(18),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Text('John Doe', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
+          Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)), child: const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text('John Doe', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            SizedBox(height: 8),
             Text('Blood Group: B+', style: TextStyle(color: Colors.black87)),
-            const SizedBox(height: 6),
+            SizedBox(height: 6),
             Text('Allergies: None', style: TextStyle(color: Colors.black54)),
           ])),
           const SizedBox(height: 16),

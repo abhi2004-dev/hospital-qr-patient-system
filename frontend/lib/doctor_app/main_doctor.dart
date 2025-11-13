@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../doctor_app/screens/doctor_login_screen.dart';
 import '../doctor_app/screens/dashboard_screen.dart';
 import '../doctor_app/utils/themes.dart';
-import '../doctor_app/utils/constants.dart';
 const String appName="Q-health";
 
 void main() {
