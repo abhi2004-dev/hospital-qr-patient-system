@@ -13,15 +13,24 @@ class PatientListScreen extends StatefulWidget {
 class _PatientListScreenState extends State<PatientListScreen> {
   final searchCtrl = TextEditingController();
 
-  List<Map<String, dynamic>> patients = [
+  final List<Map<String, dynamic>> patients = [
     {"name": "John Doe", "id": "P-1023", "age": 30, "blood": "B+", "lastVisit": "5 Nov"},
     {"name": "Sarah Lee", "id": "P-1098", "age": 27, "blood": "O-", "lastVisit": "1 Nov"},
     {"name": "David Kumar", "id": "P-1121", "age": 45, "blood": "A+", "lastVisit": "2 Nov"},
   ];
 
   @override
+  void dispose() {
+    searchCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final filtered = patients.where((p) => p['name'].toLowerCase().contains(searchCtrl.text.toLowerCase())).toList();
+    final query = searchCtrl.text.trim().toLowerCase();
+    final filtered = patients.where(
+      (p) => (p['name'] ?? '').toLowerCase().contains(query),
+    ).toList();
 
     return Column(
       children: [
@@ -33,31 +42,47 @@ class _PatientListScreenState extends State<PatientListScreen> {
             hintText: 'Search patient by name',
             filled: true,
             fillColor: Colors.white,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
           ),
         ),
-        const SizedBox(height: 10),
+
+        const SizedBox(height: 12),
+
         Expanded(
           child: ListView.builder(
             itemCount: filtered.length,
-            itemBuilder: (ctx, i) {
+            itemBuilder: (_, i) {
               final p = filtered[i];
+
               return PatientCard(
                 name: p['name'],
                 id: p['id'],
                 age: p['age'],
                 bloodGroup: p['blood'],
                 lastVisit: p['lastVisit'],
+
                 onView: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (_) => PatientBasicInfoScreen(patientId: p['id'])));
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => PatientBasicInfoScreen(
+                        data: p,         // REQUIRED
+                        doctorId: '',    // fill real doctorId when ready
+                      ),
+                    ),
+                  );
                 },
+
                 onAddRx: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => AddPrescriptionScreen(
+                      builder: (_) => AddRxScreen(
                         patientId: p['id'],
-                        patientName: p['name'],
+                        token: '',      // fill actual token later
                       ),
                     ),
                   );

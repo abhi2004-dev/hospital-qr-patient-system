@@ -1,27 +1,24 @@
+// frontend/lib/doctor_app/main_doctor.dart
 import 'package:flutter/material.dart';
-import '../doctor_app/screens/doctor_login_screen.dart';
-import '../doctor_app/screens/dashboard_screen.dart';
-import '../doctor_app/utils/themes.dart';
-const String appName="Q-health";
-
-void main() {
-  runApp(const DoctorApp());
-}
+import 'screens/dashboard_screen.dart';
+import 'utils/app_colors.dart';
 
 class DoctorApp extends StatelessWidget {
-  const DoctorApp({super.key});
+  final String token;
+  final String doctorId;
+
+  const DoctorApp({Key? key, required this.token, required this.doctorId}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: appName, // from constants.dart
-      debugShowCheckedModeBanner: false,
-      theme: doctorAppTheme ?? ThemeData.light(), // <- ✅ safe fallback added
-      initialRoute: '/login',
-      routes: {
-        '/login': (context) => const DoctorLoginScreen(),
-        '/dashboard': (context) => const DashboardScreen(),
-      },
+      title: 'Doctor',
+      theme: ThemeData(
+        primaryColor: AppColors.primary,
+        scaffoldBackgroundColor: AppColors.bg,
+        appBarTheme: const AppBarTheme(backgroundColor: AppColors.primary),
+      ),
+      home: DashboardScreen(token: token, doctorId: doctorId),
     );
   }
 }

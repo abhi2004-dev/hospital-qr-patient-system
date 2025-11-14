@@ -1,27 +1,34 @@
+// frontend/lib/doctor_app/screens/patient_basic_info_screen.dart
 import 'package:flutter/material.dart';
+import '../utils/api_service.dart';
 
 class PatientBasicInfoScreen extends StatelessWidget {
-  final String patientId;
-  const PatientBasicInfoScreen({required this.patientId, super.key});
+  final Map<String, dynamic> data;
+  final String doctorId;
+  const PatientBasicInfoScreen({Key? key, required this.data, this.doctorId = ''}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    // For now show static info; later call backend /api/patients/:id
+    final p = data;
     return Scaffold(
-      backgroundColor: const Color(0xFF0077B6),
-      appBar: AppBar(backgroundColor: const Color(0xFF0077B6), elevation: 0, title: const Text('Patient Info', style: TextStyle(color: Colors.white))),
+      appBar: AppBar(title: Text(p['name'] ?? 'Patient')),
       body: Padding(
-        padding: const EdgeInsets.all(18),
+        padding: const EdgeInsets.all(16),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)), child: const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('John Doe', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            SizedBox(height: 8),
-            Text('Blood Group: B+', style: TextStyle(color: Colors.black87)),
-            SizedBox(height: 6),
-            Text('Allergies: None', style: TextStyle(color: Colors.black54)),
-          ])),
-          const SizedBox(height: 16),
-          ElevatedButton(onPressed: ()=>Navigator.push(context, MaterialPageRoute(builder: (_)=>const Scaffold(body: Center(child: Text('OTP flow here'))))), child: const Text('Request Full History (OTP)'))
+          Text('Name: ${p['name'] ?? '-'}', style: const TextStyle(fontSize: 20)),
+          const SizedBox(height: 8),
+          Text('Age: ${p['age'] ?? '-'}'),
+          Text('Gender: ${p['gender'] ?? '-'}'),
+          Text('Blood Group: ${p['bloodGroup'] ?? '-'}'),
+          const SizedBox(height: 12),
+          ElevatedButton(onPressed: () async {
+            if (doctorId.isEmpty) {
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Doctor id missing')));
+              return;
+            }
+            final res = await ApiService.requestOtp(p['_id'] ?? p['id'], doctorId);
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(res['body']?['message'] ?? res['message'] ?? 'OTP request failed')));
+          }, child: const Text('Request Full History (OTP)')),
         ]),
       ),
     );
