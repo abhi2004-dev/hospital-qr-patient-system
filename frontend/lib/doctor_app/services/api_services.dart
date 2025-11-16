@@ -1,84 +1,69 @@
+// api_service.dart
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import '../models/doctor_model.dart';
+
+/// IMPORTANT: replace this with your laptop IP (not localhost)
+const String baseUrl = "http://192.168.1.7:5000/api";
 
 class ApiService {
-  // 🌍 Replace with your laptop IP
-  static const String base = "http://192.168.122.251:5000";
-
-  // 🧑‍⚕️ Register Doctor
-  static Future<Map<String, dynamic>?> registerDoctor(
-      String name, String email, String password, String specialization) async {
+  // -------------------------
+  // Auth
+  // -------------------------
+  static Future<Map<String, dynamic>?> doctorLogin(String email, String password) async {
     try {
-      final response = await http.post(
-        Uri.parse('$base/api/auth/doctor/register'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          "name": name,
-          "email": email,
-          "password": password,
-          "specialization": specialization,
-        }),
-      );
-
-      return jsonDecode(response.body) as Map<String, dynamic>;
-    } catch (e) {
-      print("❌ Register Network Error: $e");
-      return {"success": false, "message": "Network error"};
-    }
-  }
-
-  // 🔐 Login Doctor
-  static Future<Map<String, dynamic>?> loginDoctor(
-      String email, String password) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$base/api/auth/doctor/login'),
-        headers: {'Content-Type': 'application/json'},
+      final res = await http.post(
+        Uri.parse("$baseUrl/auth/doctor/login"),
+        headers: {"Content-Type": "application/json"},
         body: jsonEncode({"email": email, "password": password}),
       );
-
-      return jsonDecode(response.body) as Map<String, dynamic>;
+      if (res.statusCode == 200) return jsonDecode(res.body) as Map<String, dynamic>;
+      return null;
     } catch (e) {
-      print("❌ Login Network Error: $e");
-      return {"success": false, "message": "Network error"};
+      print("ApiService.doctorLogin error: $e");
+      return null;
     }
   }
 
-  // 📋 Add Patient
-  static Future<Map<String, dynamic>?> addPatient(
-      String token, Map<String, dynamic> patientData) async {
+  static Future<bool> doctorRegister(Map<String, dynamic> payload) async {
     try {
-      final response = await http.post(
-        Uri.parse('$base/api/patient/add'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: jsonEncode(patientData),
+      final res = await http.post(
+        Uri.parse("$baseUrl/auth/doctor/register"),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(payload),
+      );
+      return res.statusCode == 201 || res.statusCode == 200;
+    } catch (e) {
+      print("ApiService.doctorRegister error: $e");
+      return false;
+    }
+  }
+
+  // -------------------------
+  // Profile / Dashboard
+  // -------------------------
+  static Future<Doctor?> getDoctorProfile() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+      if (token == null) return null;
+
+      final res = await http.get(
+        Uri.parse("$baseUrl/doctor/me"),
+        headers: {"Authorization": "Bearer $token"},
       );
 
-      return jsonDecode(response.body) as Map<String, dynamic>;
+      if (res.statusCode == 200) {
+        final body = jsonDecode(res.body);
+        return Doctor.fromJson(body['doctor']);
+      }
+      return null;
     } catch (e) {
-      print("❌ Add Patient Error: $e");
-      return {"success": false, "message": "Network error"};
+      print("ApiService.getDoctorProfile error: $e");
+      return null;
     }
   }
 
-  // 🩺 Get Doctor Profile
-  static Future<Map<String, dynamic>?> getDoctorProfile(String token) async {
-    try {
-      final response = await http.get(
-        Uri.parse('$base/api/doctor/profile'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-      );
-
-      return jsonDecode(response.body) as Map<String, dynamic>;
-    } catch (e) {
-      print("❌ Fetch Doctor Profile Error: $e");
-      return {"success": false, "message": "Network error"};
-    }
-  }
+  // Other API calls (patients, prescriptions) will follow the same pattern.
 }

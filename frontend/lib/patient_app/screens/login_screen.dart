@@ -1,7 +1,14 @@
+// frontend/lib/patient_app/screens/login_screen.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+
+// --- Safe package import (preferred) ---
+import 'package:hospital_qr_frontend/patient_app/screens/registration_step1_screen.dart';
+
+// --- OR: relative import if both files are in the same folder ---
+// import 'registration_step1_screen.dart';
+
 import 'dashboard_screen.dart';
-import 'registration_step1_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -69,10 +76,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 style: GoogleFonts.poppins(
                   fontSize: 20,
                   fontWeight: FontWeight.w800,
-                  color: const Color(0xFF0B0B5A),
+                  color: Color(0xFF0B0B5A),
                   letterSpacing: 1.0,
                   shadows: [
-                    const Shadow(
+                    Shadow(
                       offset: Offset(0.5, 0.5),
                       blurRadius: 1,
                       color: Colors.black26,
@@ -94,7 +101,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
               const SizedBox(height: 25),
 
-              // Blue container
+              // Main container
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 20),
                 padding: const EdgeInsets.symmetric(vertical: 25, horizontal: 25),
@@ -109,6 +116,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     _buildTextField(_emailController, "email/ph.no", false),
 
                     const SizedBox(height: 15),
+
                     _buildLabel("password"),
                     _buildTextField(_passwordController, "password", true),
 
@@ -118,6 +126,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
+                        // LOGIN BUTTON
                         _buildButton("Login", () {
                           Navigator.pushReplacement(
                             context,
@@ -126,12 +135,13 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           );
                         }),
+
+                        // REGISTER BUTTON (fixed: non-const)
                         _buildButton("Register", () {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) =>
-                                  const RegistrationStep1Screen(),
+                              builder: (context) => PatientRegistrationStep1(),
                             ),
                           );
                         }),

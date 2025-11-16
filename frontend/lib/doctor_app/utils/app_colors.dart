@@ -2,11 +2,16 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  AppColors._();
-  static const Color primary = Color(0xFF0A73FF);
-  static const Color accent = Color(0xFFFFC107);
-  static const Color bg = Color(0xFFF5F7FB);
-  static const Color card = Color(0xFFFFFFFF);
-  static const Color text = Color(0xFF1F2A44);
-  static const Color muted = Color(0xFF758299);
+  // Main brand color (used for appbar, headings)
+  static const Color primary = Color(0xFF0A77B8);
+
+  // Background for scaffolds
+  static const Color bg = Color(0xFFBEEFF3);
+
+  // Accent / tile background etc
+  static const Color accent = Color(0xFF7FA3FF);
+
+  // Utility
+  static const Color card = Color(0xFFE6E6E6);
+  static const Color positive = Color(0xFF2EB5E0);
 }

@@ -1,82 +1,98 @@
 import 'package:flutter/material.dart';
 
 class PatientCard extends StatelessWidget {
-  final String name, id;
-  final int age;
-  final String bloodGroup, lastVisit;
-  final VoidCallback onView, onAddRx;
+  final String name;
+  final String id;
+  final int? age;
+  final String? bloodGroup;
+  final String lastVisit;
+
+  final VoidCallback onView;
+  final VoidCallback onAddRx;
 
   const PatientCard({
     super.key,
     required this.name,
     required this.id,
-    required this.age,
-    required this.bloodGroup,
     required this.lastVisit,
     required this.onView,
     required this.onAddRx,
+    this.age,
+    this.bloodGroup,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.95),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.08),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
+            blurRadius: 6,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
       child: Row(
         children: [
-          CircleAvatar(
+          const CircleAvatar(
             radius: 26,
-            backgroundColor: const Color(0xFF2EB5E0),
-            child: Text(
-              name.isNotEmpty ? name[0] : '?',
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
-            ),
+            backgroundColor: Colors.black12,
+            child: Icon(Icons.person, color: Colors.black),
           ),
+
           const SizedBox(width: 12),
+
+          // Patient Info
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                const SizedBox(height: 2),
-                Text(
-                  "Age: $age  |  Blood: $bloodGroup  |  Last visit: $lastVisit",
-                  style: const TextStyle(color: Colors.black54, fontSize: 13),
-                ),
+                Text(name,
+                    style: const TextStyle(
+                        fontSize: 17, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 4),
+
+                Text("ID: $id", style: const TextStyle(fontSize: 13)),
+
+                if (age != null)
+                  Text("Age: $age", style: const TextStyle(fontSize: 13)),
+
+                if (bloodGroup != null)
+                  Text("Blood Group: $bloodGroup",
+                      style: const TextStyle(fontSize: 13)),
+
+                const SizedBox(height: 4),
+                Text("Last Visit: $lastVisit",
+                    style:
+                        const TextStyle(fontSize: 12, color: Colors.grey)),
               ],
             ),
           ),
+
+          // Buttons
           Column(
             children: [
               ElevatedButton(
                 onPressed: onView,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blueAccent,
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  backgroundColor: Colors.blue,
+                  minimumSize: const Size(70, 36),
                 ),
-                child: const Text('View', style: TextStyle(fontSize: 12)),
+                child: const Text("View"),
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 8),
               ElevatedButton(
                 onPressed: onAddRx,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  backgroundColor: Colors.deepPurple,
+                  minimumSize: const Size(70, 36),
                 ),
-                child: const Text('+ Rx', style: TextStyle(fontSize: 12)),
+                child: const Text("Add Rx"),
               ),
             ],
           ),

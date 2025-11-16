@@ -14,9 +14,27 @@ class _PatientListScreenState extends State<PatientListScreen> {
   final searchCtrl = TextEditingController();
 
   final List<Map<String, dynamic>> patients = [
-    {"name": "John Doe", "id": "P-1023", "age": 30, "blood": "B+", "lastVisit": "5 Nov"},
-    {"name": "Sarah Lee", "id": "P-1098", "age": 27, "blood": "O-", "lastVisit": "1 Nov"},
-    {"name": "David Kumar", "id": "P-1121", "age": 45, "blood": "A+", "lastVisit": "2 Nov"},
+    {
+      "name": "John Doe",
+      "id": "P-1023",
+      "age": 30,
+      "bloodGroup": "B+",
+      "lastVisit": "5 Nov"
+    },
+    {
+      "name": "Sarah Lee",
+      "id": "P-1098",
+      "age": 27,
+      "bloodGroup": "O-",
+      "lastVisit": "1 Nov"
+    },
+    {
+      "name": "David Kumar",
+      "id": "P-1121",
+      "age": 45,
+      "bloodGroup": "A+",
+      "lastVisit": "2 Nov"
+    },
   ];
 
   @override
@@ -29,28 +47,31 @@ class _PatientListScreenState extends State<PatientListScreen> {
   Widget build(BuildContext context) {
     final query = searchCtrl.text.trim().toLowerCase();
     final filtered = patients.where(
-      (p) => (p['name'] ?? '').toLowerCase().contains(query),
+      (p) => p['name'].toLowerCase().contains(query),
     ).toList();
 
     return Column(
       children: [
-        TextField(
-          controller: searchCtrl,
-          onChanged: (_) => setState(() {}),
-          decoration: InputDecoration(
-            prefixIcon: const Icon(Icons.search),
-            hintText: 'Search patient by name',
-            filled: true,
-            fillColor: Colors.white,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
+        // Search Box
+        Padding(
+          padding: const EdgeInsets.all(12),
+          child: TextField(
+            controller: searchCtrl,
+            onChanged: (_) => setState(() {}),
+            decoration: InputDecoration(
+              prefixIcon: const Icon(Icons.search),
+              hintText: 'Search patient by name',
+              filled: true,
+              fillColor: Colors.white,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
             ),
           ),
         ),
 
-        const SizedBox(height: 12),
-
+        // List of Patients
         Expanded(
           child: ListView.builder(
             itemCount: filtered.length,
@@ -60,29 +81,27 @@ class _PatientListScreenState extends State<PatientListScreen> {
               return PatientCard(
                 name: p['name'],
                 id: p['id'],
-                age: p['age'],
-                bloodGroup: p['blood'],
+                age: p['age'],                   // 😊 correct
+                bloodGroup: p['bloodGroup'],     // 😊 correct
                 lastVisit: p['lastVisit'],
-
                 onView: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (_) => PatientBasicInfoScreen(
-                        data: p,         // REQUIRED
-                        doctorId: '',    // fill real doctorId when ready
+                        data: p,
+                        doctorId: '',
                       ),
                     ),
                   );
                 },
-
                 onAddRx: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (_) => AddRxScreen(
                         patientId: p['id'],
-                        token: '',      // fill actual token later
+                        token: '',
                       ),
                     ),
                   );

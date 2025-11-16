@@ -1,11 +1,14 @@
-import mongoose from "mongoose";
+// src/models/Doctor.js
+const mongoose = require('mongoose');
 
-const doctorSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  specialization: { type: String },
+const DoctorSchema = new mongoose.Schema({
+  name: String,
+  email: { type: String, unique: true },
+  phone: String,
+  hospital: String,
+  specialization: [String],
+  passwordHash: String,
   createdAt: { type: Date, default: Date.now }
 });
 
-export default mongoose.model("Doctor", doctorSchema);
+module.exports = mongoose.model('Doctor', DoctorSchema);

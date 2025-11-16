@@ -1,20 +1,24 @@
-import mongoose from "mongoose";
+// src/models/Patient.js
+const mongoose = require('mongoose');
 
-const patientSchema = new mongoose.Schema({
-  patientId: { type: String, required: true, unique: false },
-  name: { type: String, required: true },
-  age: Number,
-  gender: String,
-  bloodGroup: String,
-  phone: { type: String, unique: false },
-  email: String,
-  guardianEmail: String,
-  address: String,
-  allergies: [String],
-  lastVisit: Date,
-  prescriptions: [{ type: mongoose.Schema.Types.ObjectId, ref: "Prescription" }],
-  qrCode: String,
+const PrescriptionSchema = new mongoose.Schema({
+  doctorId: String,
+  meds: [{ name: String, dose: String, duration: String }],
+  notes: String,
   createdAt: { type: Date, default: Date.now }
 });
 
-export default mongoose.model("Patient", patientSchema);
+const PatientSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  phone: String,
+  email: String,
+  dob: Date,
+  bloodGroup: String,
+  allergies: [String],
+  guardianContact: String,
+  qrId: { type: String, unique: true, index: true }, // stored QR id
+  prescriptions: [PrescriptionSchema],
+  createdAt: { type: Date, default: Date.now }
+});
+
+module.exports = mongoose.model('Patient', PatientSchema);

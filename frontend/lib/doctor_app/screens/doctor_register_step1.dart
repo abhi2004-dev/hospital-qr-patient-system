@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'doctor_login_screen.dart';
+import '../utils/specializations.dart';
 import 'doctor_register_step2.dart';
 
 class DoctorRegisterStep1 extends StatefulWidget {
@@ -10,23 +10,59 @@ class DoctorRegisterStep1 extends StatefulWidget {
 }
 
 class _DoctorRegisterStep1State extends State<DoctorRegisterStep1> {
-  final nameCtrl = TextEditingController();
-  final emailCtrl = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+
+  final TextEditingController nameCtrl = TextEditingController();
+  final TextEditingController emailCtrl = TextEditingController();
+  final TextEditingController phoneCtrl = TextEditingController();
+  final TextEditingController hospitalCtrl = TextEditingController();
+  final TextEditingController userIdCtrl = TextEditingController();
+
+  List<String> selectedSpecializations = [];
+
+  @override
+  void dispose() {
+    nameCtrl.dispose();
+    emailCtrl.dispose();
+    phoneCtrl.dispose();
+    hospitalCtrl.dispose();
+    userIdCtrl.dispose();
+    super.dispose();
+  }
 
   void _next() {
-    if (nameCtrl.text.isEmpty || emailCtrl.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill all details')),
-      );
+    if (!_formKey.currentState!.validate()) return;
+    if (selectedSpecializations.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Please select at least one specialization")));
       return;
     }
+
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => DoctorRegisterStep2(
-          name: nameCtrl.text.trim(),
+        builder: (_) => DoctorRegisterScreen2(
+          fullName: nameCtrl.text.trim(),
           email: emailCtrl.text.trim(),
+          phone: phoneCtrl.text.trim(),
+          hospitalName: hospitalCtrl.text.trim(),
+          specialization: selectedSpecializations.join(", "),
+          userId: userIdCtrl.text.trim(),
         ),
+      ),
+    );
+  }
+
+  Widget _input(TextEditingController c, String hint, {TextInputType keyboard = TextInputType.text, String? Function(String?)? validator}) {
+    return TextFormField(
+      controller: c,
+      keyboardType: keyboard,
+      validator: validator,
+      decoration: InputDecoration(
+        hintText: hint,
+        filled: true,
+        fillColor: Colors.white,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
       ),
     );
   }
@@ -35,92 +71,84 @@ class _DoctorRegisterStep1State extends State<DoctorRegisterStep1> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFBEEFF3),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black87),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
+      appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0, leading: BackButton(color: Colors.black)),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          child: Column(
-            children: [
-              Image.asset('assets/logo.png', height: 100),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          child: Form(
+            key: _formKey,
+            child: Column(children: [
+              Image.asset('assets/logo.png', height: 90),
+              const SizedBox(height: 10),
+              const Text("Doctor Registration", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 16),
+
+              _input(nameCtrl, "Full name", validator: (v) {
+                if (v == null || v.trim().isEmpty) return "Name required";
+                if (!RegExp(r"^[a-zA-Z ]+$").hasMatch(v)) return "Invalid name";
+                if (v.trim().length < 3) return "Too short";
+                return null;
+              }),
               const SizedBox(height: 12),
-              const Text(
-                "DOCTOR REGISTRATION",
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF032859),
-                ),
-              ),
-              const SizedBox(height: 24),
+
+              _input(emailCtrl, "Email", keyboard: TextInputType.emailAddress, validator: (v) {
+                if (v == null || v.trim().isEmpty) return "Email required";
+                if (!RegExp(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]+$").hasMatch(v)) return "Invalid email";
+                return null;
+              }),
+              const SizedBox(height: 12),
+
+              _input(phoneCtrl, "Phone (10 digits)", keyboard: TextInputType.phone, validator: (v) {
+                if (v == null || v.trim().isEmpty) return "Phone required";
+                if (!RegExp(r"^[0-9]{10}$").hasMatch(v)) return "Enter 10 digit phone";
+                return null;
+              }),
+              const SizedBox(height: 12),
+
+              _input(hospitalCtrl, "Hospital/Clinic", validator: (v) {
+                if (v == null || v.trim().isEmpty) return "Hospital required";
+                if (v.trim().length < 3) return "Too short";
+                return null;
+              }),
+              const SizedBox(height: 12),
+
+              // Specialization chips + dropdown
+              const Align(alignment: Alignment.centerLeft, child: Text("Specialization", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))),
+              const SizedBox(height: 8),
+              if (selectedSpecializations.isNotEmpty)
+                Wrap(spacing: 8, runSpacing: 8, children: selectedSpecializations.map((spec) {
+                  return Chip(label: Text(spec), onDeleted: () => setState(() => selectedSpecializations.remove(spec)));
+                }).toList()),
+              const SizedBox(height: 8),
               Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF7FA3FF),
-                  borderRadius: BorderRadius.circular(28),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Full Name', style: TextStyle(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 6),
-                    _textField('Enter your full name', nameCtrl),
-                    const SizedBox(height: 16),
-                    const Text('Email ID', style: TextStyle(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 6),
-                    _textField('Enter your email', emailCtrl),
-                    const SizedBox(height: 24),
-                    Center(
-                      child: ElevatedButton(
-                        onPressed: _next,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.black87,
-                          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
-                        child: const Text('Next', style: TextStyle(fontSize: 16)),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Center(
-                      child: GestureDetector(
-                        onTap: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (_) => const DoctorLoginScreen()));
-                        },
-                        child: const Text(
-                          "Already registered? Login here",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            decoration: TextDecoration.underline,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    hint: const Text("Select specialization"),
+                    value: null,
+                    items: SpecializationsList.list.map((spec) => DropdownMenuItem(value: spec, child: Text(spec))).toList(),
+                    onChanged: (value) {
+                      if (value != null && !selectedSpecializations.contains(value)) setState(() => selectedSpecializations.add(value));
+                    },
+                  ),
                 ),
               ),
-            ],
+              const SizedBox(height: 16),
+
+              _input(userIdCtrl, "User ID", validator: (v) {
+                if (v == null || v.trim().isEmpty) return "User ID required";
+                if (!RegExp(r"^[a-zA-Z0-9]+$").hasMatch(v)) return "Only letters & numbers allowed";
+                if (v.trim().length < 4) return "At least 4 characters";
+                return null;
+              }),
+              const SizedBox(height: 20),
+
+              ElevatedButton(onPressed: _next, style: ElevatedButton.styleFrom(backgroundColor: Colors.black87), child: const Text("Next")),
+              const SizedBox(height: 18),
+            ]),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _textField(String hint, TextEditingController ctrl) {
-    return TextField(
-      controller: ctrl,
-      decoration: InputDecoration(
-        hintText: hint,
-        filled: true,
-        fillColor: Colors.white,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
       ),
     );
   }

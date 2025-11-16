@@ -3,16 +3,40 @@ import 'package:google_fonts/google_fonts.dart';
 import 'registration_step3_screen.dart';
 
 class RegistrationStep2Screen extends StatefulWidget {
-  const RegistrationStep2Screen({Key? key}) : super(key: key);
+  // 🔥 Add ALL required fields so Step 1 can pass data
+  final String name;
+  final String dob;
+  final String phone;
+  final String bloodGroup;
+  final List<String> allergies;
+  final String currentMeds;
+  final String pastSurgeries;
+  final String insuranceProvider;
+  final String guardianName;
+  final String guardianPhone;
+  final String guardianRelation;
+
+  const RegistrationStep2Screen({
+    Key? key,
+    required this.name,
+    required this.dob,
+    required this.phone,
+    required this.bloodGroup,
+    required this.allergies,
+    required this.currentMeds,
+    required this.pastSurgeries,
+    required this.insuranceProvider,
+    required this.guardianName,
+    required this.guardianPhone,
+    required this.guardianRelation,
+  }) : super(key: key);
 
   @override
-  State<RegistrationStep2Screen> createState() => _RegistrationStep2ScreenState();
+  State<RegistrationStep2Screen> createState() =>
+      _RegistrationStep2ScreenState();
 }
 
 class _RegistrationStep2ScreenState extends State<RegistrationStep2Screen> {
-  final _nameController = TextEditingController();
-  final _dobController = TextEditingController();
-  final _phoneController = TextEditingController();
   final _addressController = TextEditingController();
   final _emailController = TextEditingController();
 
@@ -56,7 +80,6 @@ class _RegistrationStep2ScreenState extends State<RegistrationStep2Screen> {
             children: [
               const SizedBox(height: 40),
 
-              // Back arrow
               Align(
                 alignment: Alignment.centerLeft,
                 child: IconButton(
@@ -65,12 +88,7 @@ class _RegistrationStep2ScreenState extends State<RegistrationStep2Screen> {
                 ),
               ),
 
-              // Logo
-              Image.asset(
-                'assets/logo.png',
-                width: 110,
-                height: 110,
-              ),
+              Image.asset('assets/logo.png', width: 110, height: 110),
 
               const SizedBox(height: 10),
 
@@ -117,7 +135,8 @@ class _RegistrationStep2ScreenState extends State<RegistrationStep2Screen> {
 
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 20),
-                padding: const EdgeInsets.symmetric(vertical: 25, horizontal: 25),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 25, horizontal: 25),
                 decoration: BoxDecoration(
                   color: const Color(0xFF7388F6),
                   borderRadius: BorderRadius.circular(25),
@@ -125,41 +144,15 @@ class _RegistrationStep2ScreenState extends State<RegistrationStep2Screen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildLabel("Full name"),
-                    _buildTextField(_nameController, "name", false),
-
-                    const SizedBox(height: 15),
-                    _buildLabel("D.O.B"),
-                    _buildTextField(_dobController, "yyyy-mm-dd", false),
-
-                    const SizedBox(height: 15),
-                    _buildLabel("Gender"),
-                    const SizedBox(height: 5),
-                    Row(
-                      children: [
-                        _buildGenderOption("male"),
-                        const SizedBox(width: 20),
-                        _buildGenderOption("female"),
-                      ],
-                    ),
-
-                    const SizedBox(height: 15),
-                    _buildLabel("phone number"),
-                    _buildTextField(_phoneController, "Phone Number", false),
-
-                    const SizedBox(height: 15),
-                    _buildLabel("Blood group"),
-                    _buildDropdown(),
-
-                    const SizedBox(height: 15),
                     _buildLabel("Address"),
-                    _buildTextField(_addressController, "", false),
+                    _buildTextField(_addressController, "Enter address", false),
 
                     const SizedBox(height: 15),
                     _buildLabel("Email"),
                     _buildTextField(_emailController, "email", false),
 
                     const SizedBox(height: 25),
+
                     Center(
                       child: ElevatedButton(
                         onPressed: () {
@@ -239,6 +232,30 @@ class _RegistrationStep2ScreenState extends State<RegistrationStep2Screen> {
     );
   }
 
+  Widget _buildGenderOption(String gender) {
+    return Row(
+      children: [
+        Radio<String>(
+          value: gender,
+          groupValue: _selectedGender,
+          activeColor: Colors.black,
+          onChanged: (val) {
+            setState(() {
+              _selectedGender = val;
+            });
+          },
+        ),
+        Text(
+          gender,
+          style: GoogleFonts.poppins(
+            fontSize: 14,
+            color: Colors.black,
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildDropdown() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -270,30 +287,6 @@ class _RegistrationStep2ScreenState extends State<RegistrationStep2Screen> {
           },
         ),
       ),
-    );
-  }
-
-  Widget _buildGenderOption(String gender) {
-    return Row(
-      children: [
-        Radio<String>(
-          value: gender,
-          groupValue: _selectedGender,
-          activeColor: Colors.black,
-          onChanged: (val) {
-            setState(() {
-              _selectedGender = val;
-            });
-          },
-        ),
-        Text(
-          gender,
-          style: GoogleFonts.poppins(
-            fontSize: 14,
-            color: Colors.black,
-          ),
-        ),
-      ],
     );
   }
 }

@@ -1,43 +1,50 @@
 import 'package:flutter/material.dart';
+
+// doctor & patient entry screens
 import '../doctor_app/screens/doctor_register_step1.dart';
+import '../patient_app/screens/registration_step1_screen.dart';
 
 class RoleSelectionScreen extends StatefulWidget {
   const RoleSelectionScreen({super.key});
+
   @override
   State<RoleSelectionScreen> createState() => _RoleSelectionScreenState();
 }
 
 class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
-  String? selectedRole;
+  String? selectedRole; // 'patient' or 'doctor'
 
   void _continue() {
     if (selectedRole == 'doctor') {
-      Navigator.push(context, MaterialPageRoute(builder: (_) => const DoctorRegisterStep1()));
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Patient app will be available soon.")),
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => DoctorRegisterStep1()), // FIXED → removed const
+      );
+    } else if (selectedRole == 'patient') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => PatientRegistrationStep1()), // FIXED → removed const
       );
     }
   }
 
-  Widget _roleCard(String label, IconData icon, String value) {
-    final active = selectedRole == value;
+  Widget roleCard(String label, IconData icon, String value) {
+    final bool active = selectedRole == value;
     return GestureDetector(
-      onTap: () => setState(() {
-        selectedRole = value;
-        _continue(); // Trigger navigation or snackbar immediately on selection
-      }),
+      onTap: () => setState(() => selectedRole = value),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
-        padding: const EdgeInsets.all(16),
+        duration: const Duration(milliseconds: 220),
+        padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
+          color: active ? Colors.white : Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+              color: active ? Colors.blue.shade700 : Colors.transparent,
+              width: 2),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(active ? 0.2 : 0.1),
+              color: Colors.black.withOpacity(active ? 0.12 : 0.04),
               blurRadius: active ? 12 : 6,
-              offset: const Offset(0, 4),
             )
           ],
         ),
@@ -45,16 +52,15 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
           children: [
             CircleAvatar(
               backgroundColor: const Color(0xFF2EB5E0),
-              radius: 26,
-              child: Icon(icon, color: Colors.white, size: 28),
+              child: Icon(icon, color: Colors.white),
             ),
-            const SizedBox(width: 14),
+            const SizedBox(width: 12),
             Text(
               label,
               style: TextStyle(
                 fontSize: 18,
-                fontWeight: active ? FontWeight.bold : FontWeight.w500,
-                color: active ? const Color(0xFF032859) : Colors.black87,
+                fontWeight: FontWeight.w600,
+                color: active ? const Color(0xFF004E89) : Colors.black87,
               ),
             ),
           ],
@@ -76,20 +82,15 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
         ),
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const SizedBox(height: 16),
-                Image.asset('assets/logo.png', height: 140), // Increased logo size
-                const SizedBox(height: 10),
+                const SizedBox(height: 12),
+                Image.asset('assets/logo.png', height: 96),
+                const SizedBox(height: 8),
                 const Text(
                   'Health meets Technology..',
-                  style: TextStyle(
-                    fontSize: 15,
-                    color: Color(0xFF032859),
-                    fontWeight: FontWeight.w500,
-                  ),
+                  style: TextStyle(fontSize: 14, color: Color(0xFF032859)),
                 ),
                 const SizedBox(height: 40),
                 const Text(
@@ -100,12 +101,24 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
                     color: Color(0xFF032859),
                   ),
                 ),
-                const SizedBox(height: 24),
-                _roleCard('PATIENT', Icons.person, 'patient'),
-                const SizedBox(height: 18),
-                _roleCard('DOCTOR', Icons.medical_services, 'doctor'),
+                const SizedBox(height: 20),
+                roleCard('PATIENT', Icons.person, 'patient'),
+                const SizedBox(height: 16),
+                roleCard('DOCTOR', Icons.medical_services, 'doctor'),
                 const Spacer(),
-                // Removed the ElevatedButton and SizedBox here.
+                ElevatedButton(
+                  onPressed: selectedRole == null ? null : _continue,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF004E89),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 36, vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text('Continue', style: TextStyle(fontSize: 16)),
+                ),
+                const SizedBox(height: 18),
               ],
             ),
           ),
