@@ -1,10 +1,80 @@
+// frontend/lib/patient_app/screens/profile_screen.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../services/auth_service.dart' as patient_auth;
 import 'edit_profile_screen.dart';
 import 'dashboard_screen.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  String _name = "";
+  String _age = "";
+  String _email = "";
+  String _phone = "";
+  String _address = "";
+  String _patientId = "";
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPatient();
+  }
+
+  Future<void> _loadPatient() async {
+    setState(() => _loading = true);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final id = prefs.getString('patientId');
+
+      if (id == null || id.isEmpty) {
+        setState(() => _loading = false);
+        return;
+      }
+
+      _patientId = id;
+
+      final res = await patient_auth.AuthService.getPatient(id);
+
+      if (res['success'] == true) {
+        final dynamic patientRaw = res['patient'] ?? res['data'];
+        if (patientRaw is Map<String, dynamic>) {
+          final p = patientRaw;
+          setState(() {
+            _name = (p['name'] ?? '').toString();
+            _email = (p['email'] ?? '').toString();
+            _phone = (p['phone'] ?? '').toString();
+            _address = (p['address'] ?? '').toString();
+            final dob = (p['dob'] ?? '').toString();
+            _age = p['age']?.toString() ??
+                (dob.isNotEmpty ? "DOB: $dob" : "");
+            _loading = false;
+          });
+          return;
+        }
+      }
+
+      // fallback: at least load from SharedPreferences if set
+      setState(() {
+        _name = prefs.getString('patientName') ?? "";
+        _email = prefs.getString('patientEmail') ?? "";
+        _phone = prefs.getString('patientPhone') ?? "";
+        _loading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _loading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -14,188 +84,218 @@ class ProfileScreen extends StatelessWidget {
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Color(0xFF1A82B2),
-              Color(0xFF157BAA),
-              Color(0xFF1174A2),
+              Color(0xFFBBD2FF),
+              Color(0xFF9AB6FF),
+              Color(0xFF7388F6),
             ],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
         ),
         child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                
-                IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.black),
-                  onPressed: () => Navigator.pop(context),
-                ),
-
-                const SizedBox(height: 5),
-
-                Text(
-                  "Patient profile",
-                  style: GoogleFonts.poppins(
-                    fontSize: 32,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.black,
-                  ),
-                ),
-
-                const SizedBox(height: 25),
-
-                // TOP PROFILE BOX
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE3E3E3),
-                    borderRadius: BorderRadius.circular(18),
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Icon(Icons.person, size: 70, color: Colors.black87),
-                      const SizedBox(width: 15),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+          child: _loading
+              ? const Center(child: CircularProgressIndicator())
+              : Column(
+                  children: [
+                    const SizedBox(height: 20),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Row(
                         children: [
-                          Text("Patient name",
-                              style: GoogleFonts.poppins(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w600,
-                              )),
-                          Text("Age",
-                              style: GoogleFonts.poppins(fontSize: 18)),
-                          Text("Patient ID",
-                              style: GoogleFonts.poppins(fontSize: 18)),
+                          IconButton(
+                            icon: const Icon(Icons.arrow_back,
+                                color: Colors.white),
+                            onPressed: () {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const DashboardScreen(),
+                                ),
+                              );
+                            },
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            "Profile",
+                            style: GoogleFonts.poppins(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
+                          ),
                         ],
                       ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 20),
-
-                // BASIC INFO BOX
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE3E3E3),
-                    borderRadius: BorderRadius.circular(18),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text("Basic info",
-                          style: GoogleFonts.poppins(
-                              fontSize: 18, fontWeight: FontWeight.w600)),
-                      const SizedBox(height: 10),
-                      Text("Blood group:",
-                          style: GoogleFonts.poppins(fontSize: 16)),
-                      Text("Gender :",
-                          style: GoogleFonts.poppins(fontSize: 16)),
-                      Text("Address:",
-                          style: GoogleFonts.poppins(fontSize: 16)),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 20),
-
-                // CONTACT INFO BOX
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE3E3E3),
-                    borderRadius: BorderRadius.circular(18),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text("Contact info",
-                          style: GoogleFonts.poppins(
-                              fontSize: 18, fontWeight: FontWeight.w600)),
-                      const SizedBox(height: 10),
-                      Text("phone no:",
-                          style: GoogleFonts.poppins(fontSize: 16)),
-                      Text("email:",
-                          style: GoogleFonts.poppins(fontSize: 16)),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 35),
-
-                // BUTTONS: EDIT PROFILE + HOME
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    // EDIT PROFILE BUTTON
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) => const EditProfileScreen()),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 25, vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: Text(
-                        "Edit profile",
-                        style: GoogleFonts.poppins(
-                          fontSize: 15,
-                          color: Colors.black,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
                     ),
+                    const SizedBox(height: 24),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 10),
+                          child: Column(
+                            children: [
+                              // Top card: avatar + name + age + ID
+                              Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Icon(Icons.person,
+                                        size: 70, color: Colors.black87),
+                                    const SizedBox(width: 15),
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          _name.isNotEmpty
+                                              ? _name
+                                              : "Patient name",
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        Text(
+                                          _age.isNotEmpty ? _age : "Age",
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 18,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 6),
+                                        if (_patientId.isNotEmpty)
+                                          Text(
+                                            "Patient ID: $_patientId",
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 14,
+                                              color: Colors.grey[700],
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
 
-                    // HOME BUTTON
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) => const DashboardScreen()),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF004E7C),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 35, vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: Text(
-                        "Home",
-                        style: GoogleFonts.poppins(
-                          fontSize: 15,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
+                              const SizedBox(height: 18),
+
+                              // Contact / address card
+                              Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Contact",
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Row(
+                                      children: [
+                                        const Icon(Icons.phone, size: 20),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          _phone.isNotEmpty
+                                              ? _phone
+                                              : "Phone not available",
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        const Icon(Icons.email, size: 20),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text(
+                                            _email.isNotEmpty
+                                                ? _email
+                                                : "Email not available",
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      "Address",
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      _address.isNotEmpty
+                                          ? _address
+                                          : "Address not available",
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                              const SizedBox(height: 20),
+
+                              // Buttons: Edit + Home
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) =>
+                                              const EditProfileScreen(),
+                                        ),
+                                      );
+                                    },
+                                    child: const Text("Edit Profile"),
+                                  ),
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      Navigator.pushAndRemoveUntil(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) =>
+                                              const DashboardScreen(),
+                                        ),
+                                        (route) => false,
+                                      );
+                                    },
+                                    child: const Text("Home"),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
                   ],
                 ),
-
-                const SizedBox(height: 40),
-              ],
-            ),
-          ),
         ),
       ),
     );

@@ -1,1 +1,1 @@
-mongodb+srv://abhisooryavamshi99_db_user:<wK76eJEGXsqemeYu>@hospitalqrproject.hoffu6k.mongodb.net/?retryWrites=true&w=majority&appName=HospitalQRProject
+MONGODB_URI=mongodb+srv://abhisooryavamshi99_db_user:YOUR_PASSWORD@hospitalqrproject.hoffu6k.mongodb.net/HospitalQrProject?retryWrites=true&w=majority&appName=HospitalQRProject

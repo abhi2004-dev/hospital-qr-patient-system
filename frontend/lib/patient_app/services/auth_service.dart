@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 
 class AuthService {
   // Replace with your backend IP
-  static const String base = "http://192.168.122.251:5000";
+  static const String base = "http://10.211.180.251:5000";
 
   // ============================
   // REGISTER PATIENT

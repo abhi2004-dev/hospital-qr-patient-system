@@ -1,17 +1,21 @@
-// src/config/db.js
 const mongoose = require('mongoose');
 
 async function connectDB() {
-  const uri = process.env.MONGODB_URI;
+  require("dotenv").config();
+
+  const uri = process.env.MONGODB_URI || process.env.MONGO_URI;
+
   if (!uri) {
-    console.error('MONGODB_URI not set in .env');
+    console.error('❌ MONGODB_URI not set in .env');
     process.exit(1);
   }
+
   try {
-    await mongoose.connect(uri, { dbName: 'hospital_qr' });
-    console.log('MongoDB connected');
+    // You already provided database name inside the URI, so no dbName needed.
+    await mongoose.connect(uri);
+    console.log('✅ MongoDB Connected Successfully');
   } catch (err) {
-    console.error('MongoDB connection error:', err);
+    console.error('❌ MongoDB Connection Error:', err.message);
     process.exit(1);
   }
 }
