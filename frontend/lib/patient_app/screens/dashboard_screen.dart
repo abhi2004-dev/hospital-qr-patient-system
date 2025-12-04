@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
+
 // SCREEN IMPORTS
 import 'qr_screen.dart';
 import 'prescription_screen.dart';
@@ -8,8 +12,66 @@ import 'emergency_info_screen.dart';
 import 'help_screen.dart';
 import 'settings_screen.dart';
 
-class DashboardScreen extends StatelessWidget {
+const String _baseUrl = "http://192.168.252.251:5000";
+
+class DashboardScreen extends StatefulWidget {
   const DashboardScreen({Key? key}) : super(key: key);
+
+  @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  String _patientName = "Patient";
+  String _patientId = "";
+  String _patientQrId = "";
+
+  bool _loading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPatientFromBackend();
+  }
+
+  Future<void> _loadPatientFromBackend() async {
+    setState(() => _loading = true);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+
+      // try to read saved id; if empty, fall back to your test id
+      String id = prefs.getString("patient_id") ?? "";
+      if (id.isEmpty) {
+        id = "693060d28905ddd769c44b36"; // temp: your test patient id
+      }
+
+      final uri = Uri.parse("$_baseUrl/api/patient/$id");
+      final res = await http.get(uri);
+
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        if (data["success"] == true) {
+          final p = data["patient"] ?? {};
+          setState(() {
+            _patientName = (p["name"] ?? "Patient").toString();
+            _patientId = (p["_id"] ?? "").toString();
+            _patientQrId = (p["qrId"] ?? "").toString();
+          });
+
+          // also keep in prefs for other screens
+          await prefs.setString("patient_id", _patientId);
+          await prefs.setString("patient_name", _patientName);
+          await prefs.setString("patient_qrId", _patientQrId);
+          await prefs.setString("patient_phone", (p["phone"] ?? "").toString());
+        }
+      }
+    } catch (e) {
+      // optional: show snackbar
+      debugPrint("Dashboard load error: $e");
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +113,7 @@ class DashboardScreen extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          "Patient name",
+                          _patientName,
                           style: GoogleFonts.poppins(
                             fontSize: 20,
                             color: Colors.white,
@@ -113,18 +175,20 @@ class DashboardScreen extends StatelessWidget {
                         Icons.qr_code,
                         "My QR",
                         onTap: () {
+                          if (_patientId.isEmpty && _patientQrId.isEmpty) return;
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => const QRScreen(
-                                patientID: "PAT123456",
-                                patientName: "Patient name",
+                              builder: (_) => QRScreen(
+                                patientID: _patientQrId.isNotEmpty
+                                    ? _patientQrId
+                                    : _patientId,
+                                patientName: _patientName,
                               ),
                             ),
                           );
                         },
                       ),
-
                       _buildQuickAction(
                         Icons.receipt_long,
                         "Prescription",
@@ -136,7 +200,6 @@ class DashboardScreen extends StatelessWidget {
                           );
                         },
                       ),
-
                       _buildQuickAction(
                         Icons.folder_open,
                         "Records",
@@ -148,7 +211,6 @@ class DashboardScreen extends StatelessWidget {
                           );
                         },
                       ),
-
                       _buildQuickAction(
                         Icons.emergency,
                         "Emergency",
@@ -165,11 +227,11 @@ class DashboardScreen extends StatelessWidget {
                 ),
               ),
 
-              // ----------------------------------------------------
-              // RECENT VISITS
-              // ----------------------------------------------------
               const SizedBox(height: 25),
 
+              // ----------------------------------------------------
+              // RECENT VISITS (still dummy for now)
+              // ----------------------------------------------------
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Text(
@@ -209,14 +271,11 @@ class DashboardScreen extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            // HOME
             GestureDetector(
               onTap: () {},
               child: const Icon(Icons.home_outlined,
                   color: Colors.black, size: 28),
             ),
-
-            // SETTINGS
             GestureDetector(
               onTap: () {
                 Navigator.push(
@@ -227,8 +286,6 @@ class DashboardScreen extends StatelessWidget {
               child: const Icon(Icons.settings_outlined,
                   color: Colors.black, size: 28),
             ),
-
-            // HELP
             GestureDetector(
               onTap: () {
                 Navigator.push(

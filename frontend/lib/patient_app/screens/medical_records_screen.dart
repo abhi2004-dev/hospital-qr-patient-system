@@ -1,217 +1,111 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class MedicalRecordsScreen extends StatelessWidget {
+const String _baseUrl = "http://192.168.252.251:5000";
+
+class MedicalRecordsScreen extends StatefulWidget {
   const MedicalRecordsScreen({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
+  State<MedicalRecordsScreen> createState() => _MedicalRecordsScreenState();
+}
 
+class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
+  bool _loading = false;
+
+  List allergies = [];
+  String currentMeds = "Not Provided";
+  String pastSurgeries = "Not Provided";
+  List prescriptions = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMedicalRecords();
+  }
+
+  Future<void> _loadMedicalRecords() async {
+    setState(() => _loading = true);
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      String patientId = prefs.getString("patient_id") ?? "";
+
+      if (patientId.isEmpty) patientId = "693060d28905ddd769c44b36";
+
+      final uri = Uri.parse("$_baseUrl/api/patient/$patientId");
+      final res = await http.get(uri);
+
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+
+        if (data["success"] == true) {
+          final p = data["patient"] ?? {};
+
+          setState(() {
+            allergies = p["allergies"] ?? [];
+            currentMeds = p["currentMeds"] ?? "Not Provided";
+            pastSurgeries = p["pastSurgeries"] ?? "Not Provided";
+            prescriptions = p["prescriptions"] ?? [];
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint("Medical records load error: $e");
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: Container(
-        width: size.width,
-        height: size.height,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Color(0xFF1A82B2),
-              Color(0xFF57B5EA),
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
+      backgroundColor: const Color(0xFF9BD6DC),
+      body: SingleChildScrollView(
         child: Column(
           children: [
             const SizedBox(height: 40),
 
-            // Back arrow
-            Align(
-              alignment: Alignment.centerLeft,
-              child: IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.black),
-                onPressed: () => Navigator.pop(context),
-              ),
-            ),
-
-            // Title
             Text(
-              "Patient full record",
+              "MEDICAL RECORDS",
               style: GoogleFonts.poppins(
-                fontSize: 24,
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+                color: const Color(0xFF0B0B5A),
               ),
             ),
 
             const SizedBox(height: 20),
 
-            // Scrollable content box
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Profile Card
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFE0E0E0),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.person_outline,
-                              size: 60, color: Colors.black),
-                          const SizedBox(height: 10),
-                          Text(
-                            "Name",
-                            style: GoogleFonts.poppins(
-                              fontSize: 22,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          Text(
-                            "ID: P_123",
-                            style: GoogleFonts.poppins(
-                              fontSize: 15,
-                            ),
-                          ),
-                          Text(
-                            "Adress: ********",
-                            style: GoogleFonts.poppins(fontSize: 14),
-                          ),
-                          Text(
-                            "Phone number: *****",
-                            style: GoogleFonts.poppins(fontSize: 14),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 25),
-
-                    // Section Title
-                    Text(
-                      "Medical Overview",
-                      style: GoogleFonts.poppins(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.black,
-                      ),
-                    ),
-
-                    const SizedBox(height: 15),
-
-                    // Medical overview boxes
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        _infoBox("Current\nmedication"),
-                        _infoBox("Allergies"),
-                      ],
-                    ),
-
-                    const SizedBox(height: 15),
-
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        _infoBox("Past surgeries"),
-                        _infoBox("Chronic\nillnesses"),
-                      ],
-                    ),
-
-                    const SizedBox(height: 30),
-
-                    // Emergency & insurance section
-                    Text(
-                      "Emergency info and insurance",
-                      style: GoogleFonts.poppins(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.black,
-                      ),
-                    ),
-
-                    const SizedBox(height: 15),
-
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFE0E0E0),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text("Guardian name:",
-                              style: _infoTextStyle()),
-                          Text("Guardian Phone number:",
-                              style: _infoTextStyle()),
-                          Text("Guardian relation:",
-                              style: _infoTextStyle()),
-                          Text("insurance provider:",
-                              style: _infoTextStyle()),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 25),
-
-                    // Buttons row
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        ElevatedButton(
-                          onPressed: () {},
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.black87,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 25, vertical: 12),
-                          ),
-                          child: Text(
-                            "Save Pdf",
-                            style: GoogleFonts.poppins(
-                              fontSize: 15,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                        ElevatedButton(
-                          onPressed: () {},
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.black87,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 25, vertical: 12),
-                          ),
-                          child: Text(
-                            "Add Prescription",
-                            style: GoogleFonts.poppins(
-                              fontSize: 15,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 40),
-                  ],
-                ),
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: const Color(0xFF7388F6),
+                borderRadius: BorderRadius.circular(20),
               ),
+              child: _loading
+                  ? const Center(
+                      child: CircularProgressIndicator(color: Colors.white))
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildSection("Allergies", allergies.isEmpty ? "None" : allergies.join(", ")),
+                        const SizedBox(height: 15),
+
+                        _buildSection("Current Medication", currentMeds),
+                        const SizedBox(height: 15),
+
+                        _buildSection("Past Surgeries", pastSurgeries),
+                        const SizedBox(height: 15),
+
+                        _buildSection("Prescriptions",
+                            prescriptions.isEmpty ? "No prescriptions yet" : prescriptions.join(", ")),
+                      ],
+                    ),
             ),
           ],
         ),
@@ -219,34 +113,35 @@ class MedicalRecordsScreen extends StatelessWidget {
     );
   }
 
-  // Info box widget
-  Widget _infoBox(String title) {
-    return Container(
-      width: 150,
-      height: 90,
-      decoration: BoxDecoration(
-        color: const Color(0xFFE0E0E0),
-        borderRadius: BorderRadius.circular(15),
-      ),
-      padding: const EdgeInsets.all(12),
-      child: Center(
-        child: Text(
+  Widget _buildSection(String title, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
           title,
-          textAlign: TextAlign.center,
           style: GoogleFonts.poppins(
-            fontSize: 15,
+            color: Colors.white,
+            fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: Colors.black,
           ),
         ),
-      ),
-    );
-  }
-
-  TextStyle _infoTextStyle() {
-    return GoogleFonts.poppins(
-      fontSize: 15,
-      fontWeight: FontWeight.w500,
+        const SizedBox(height: 5),
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: const Color(0xFFB5CFE9),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Text(
+            value,
+            style: GoogleFonts.poppins(
+              color: Colors.black,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        )
+      ],
     );
   }
 }

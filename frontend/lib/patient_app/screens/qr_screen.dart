@@ -3,8 +3,14 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 class QRScreen extends StatelessWidget {
-  final String patientID;       // <-- Unique ID passed from Dashboard
-  final String patientName;     // <-- To display under QR
+  /// This should be the **unique ID** you want to encode in QR.
+  /// In our flow, we’ll pass:
+  ///   - patientQrId (e.g. "P-194157") if available
+  ///   - else patient _id
+  final String patientID;
+
+  /// This is only for display under the QR, not inside it.
+  final String patientName;
 
   const QRScreen({
     Key? key,
@@ -55,7 +61,8 @@ class QRScreen extends StatelessWidget {
               ),
               padding: const EdgeInsets.all(15),
               child: QrImageView(
-                data: patientID,        // REAL QR generated from patient ID
+                // 🔥 REAL QR DATA
+                data: patientID,
                 version: QrVersions.auto,
                 size: 200,
                 backgroundColor: Colors.white,
@@ -74,7 +81,7 @@ class QRScreen extends StatelessWidget {
               ),
               child: Center(
                 child: Text(
-                  patientName,    // <-- Display real patient name
+                  patientName,
                   style: GoogleFonts.poppins(
                     color: Colors.black,
                     fontSize: 16,
@@ -86,7 +93,7 @@ class QRScreen extends StatelessWidget {
 
             const SizedBox(height: 10),
 
-            // Patient ID Box
+            // Patient ID Box (same value as QR content)
             Container(
               width: 200,
               padding: const EdgeInsets.symmetric(vertical: 10),
@@ -96,7 +103,7 @@ class QRScreen extends StatelessWidget {
               ),
               child: Center(
                 child: Text(
-                  patientID, // <-- Display real ID
+                  patientID,
                   style: GoogleFonts.poppins(
                     color: Colors.black,
                     fontSize: 16,
@@ -108,10 +115,10 @@ class QRScreen extends StatelessWidget {
 
             const SizedBox(height: 30),
 
-            // Download QR Button
+            // Download QR Button (logic to be added later if you want)
             ElevatedButton(
               onPressed: () {
-                // TODO: implement download
+                // TODO: implement download/share if needed
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF004E7C),
@@ -124,34 +131,9 @@ class QRScreen extends StatelessWidget {
               child: Text(
                 "Download QR",
                 style: GoogleFonts.poppins(
-                  fontSize: 15,
+                  fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFFD8E7F4),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // Share QR Button
-            ElevatedButton(
-              onPressed: () {
-                // TODO: implement share
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF004E7C),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 85, vertical: 12),
-              ),
-              child: Text(
-                "Share QR",
-                style: GoogleFonts.poppins(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: const Color(0xFFD8E7F4),
+                  color: Colors.white,
                 ),
               ),
             ),

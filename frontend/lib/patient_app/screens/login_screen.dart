@@ -1,15 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'registration_step1_screen.dart';
 import 'dashboard_screen.dart';
-
-
-const String _baseUrl =
-    "http://10.211.180.251:5000"; // TODO: change to your backend IP if needed.
+import '../services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -53,25 +48,20 @@ class _LoginScreenState extends State<LoginScreen> {
             children: [
               const SizedBox(height: 40),
 
-              // Back arrow
               Align(
                 alignment: Alignment.centerLeft,
                 child: IconButton(
                   icon: const Icon(Icons.arrow_back, color: Colors.black),
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
+                  onPressed: () => Navigator.pop(context),
                 ),
               ),
 
               const SizedBox(height: 10),
 
-              // Logo
               Image.asset('assets/logo.png', width: 110, height: 110),
 
               const SizedBox(height: 10),
 
-              // Tagline
               Text(
                 "Health meets Technology..",
                 style: GoogleFonts.montserrat(
@@ -83,7 +73,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
               const SizedBox(height: 20),
 
-              // Title
               Text(
                 "PATIENT LOGIN",
                 style: GoogleFonts.poppins(
@@ -91,8 +80,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   fontWeight: FontWeight.w800,
                   color: const Color(0xFF0B0B5A),
                   letterSpacing: 1.0,
-                  shadows: [
-                    const Shadow(
+                  shadows: const [
+                    Shadow(
                       offset: Offset(0.5, 0.5),
                       blurRadius: 1,
                       color: Colors.black26,
@@ -103,7 +92,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
               const SizedBox(height: 20),
 
-              // Main container
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 20),
                 padding:
@@ -116,8 +104,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildLabel("email or mobile number"),
-                    _buildTextField(
-                        _emailController, "email/ph.no", false), // unchanged
+                    _buildTextField(_emailController, "email/ph.no", false),
 
                     const SizedBox(height: 15),
 
@@ -126,23 +113,22 @@ class _LoginScreenState extends State<LoginScreen> {
 
                     const SizedBox(height: 25),
 
-                    // Buttons
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        // LOGIN BUTTON
                         _buildButton("Login", _handleLogin),
-
-                        // REGISTER BUTTON (fixed: non-const)
-                        _buildButton("Register", () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  const RegistrationStep1Screen(),
-                            ),
-                          );
-                        }),
+                        _buildButton(
+                          "Register",
+                          () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const PatientRegistrationStep1(),
+                              ),
+                            );
+                          },
+                        ),
                       ],
                     ),
                   ],
@@ -157,70 +143,88 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  // ==========================================================
+  // LOGIN LOGIC (uses AuthService + saves to SharedPreferences)
+  // ==========================================================
   Future<void> _handleLogin() async {
     final emailOrPhone = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
-    if (emailOrPhone.isEmpty || password.isEmpty) {
-      // simple validation; you can add a Snackbar if you want
-      return;
-    }
+    if (emailOrPhone.isEmpty || password.isEmpty) return;
 
     setState(() {
       _isLoading = true;
     });
 
     try {
-      final uri = Uri.parse("$_baseUrl/api/auth/patient/login");
-      final response = await http.post(
-        uri,
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode({
-          "phone": emailOrPhone,
-          "password": password,
-        }),
+      final data = await AuthService.loginPatient(
+        email: emailOrPhone,
+        password: password,
       );
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data["success"] == true) {
-          final user = data["user"] ?? {};
-          final token = data["token"] ?? "";
+      if (data["success"] == true) {
+        final prefs = await SharedPreferences.getInstance();
 
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.setBool("patient_logged_in", true);
-          await prefs.setString("patient_token", token);
-          await prefs.setString("patient_id", user["_id"]?.toString() ?? "");
-          await prefs.setString(
-              "patient_name", user["name"]?.toString() ?? "");
-          await prefs.setString("patient_phone",
-              user["phone"]?.toString() ?? emailOrPhone);
+        // Try to extract user + token in a flexible way
+        final body = data["body"] ?? {};
+        final user = data["user"] ?? body["patient"] ?? body["user"] ?? {};
+        final token = data["token"] ?? body["token"] ?? "";
 
-          if (!mounted) return;
+        await prefs.setBool("patient_logged_in", true);
+        await prefs.setString("patient_token", token.toString());
 
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const DashboardScreen(),
-            ),
-          );
-        } else {
-          // login failed - you can show data["message"] in a Snackbar if needed
+        await prefs.setString(
+          "patient_id",
+          (user["_id"] ?? user["id"] ?? user["patientId"] ?? "").toString(),
+        );
+
+        await prefs.setString(
+          "patient_name",
+          (user["name"] ?? "").toString(),
+        );
+
+        await prefs.setString(
+          "patient_phone",
+          (user["phone"] ?? emailOrPhone).toString(),
+        );
+
+        await prefs.setString(
+          "patient_email",
+          (user["email"] ?? "").toString(),
+        );
+
+        if (user["qrId"] != null) {
+          await prefs.setString("patient_qrId", user["qrId"].toString());
         }
+
+        if (!mounted) return;
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const DashboardScreen()),
+        );
       } else {
-        // handle non-200 status if needed
+        if (!mounted) return;
+        final msg = data["message"] ?? "Login failed";
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(msg.toString())),
+        );
       }
     } catch (e) {
-      // network or parsing error - optional: show a message
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Login error")),
+      );
     } finally {
       if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
+        setState(() => _isLoading = false);
       }
     }
   }
 
+  // ==========================================================
+  // UI WIDGET HELPERS — DO NOT TOUCH UI
+  // ==========================================================
   Widget _buildLabel(String text) {
     return Text(
       text,

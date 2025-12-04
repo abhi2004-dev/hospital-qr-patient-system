@@ -6,7 +6,11 @@ class AddRxScreen extends StatefulWidget {
   final String patientId;
   final String token; // doctor's token
 
-  const AddRxScreen({Key? key, required this.patientId, required this.token}) : super(key: key);
+  const AddRxScreen({
+    Key? key,
+    required this.patientId,
+    required this.token,
+  }) : super(key: key);
 
   @override
   State<AddRxScreen> createState() => _AddRxScreenState();
@@ -35,8 +39,11 @@ class _AddRxScreenState extends State<AddRxScreen> {
       'patientId': widget.patientId,
       'diagnosis': _diagnosisCtl.text.trim(),
       'medicines': [
-        // very simple: single string; expand to list-of-objects UI later
-        {'name': _medicineCtl.text.trim(), 'dosage': '', 'schedule': ''}
+        {
+          'name': _medicineCtl.text.trim(),
+          'dosage': '',
+          'schedule': '',
+        }
       ],
       'notes': _notesCtl.text.trim(),
       'chronic': false,
@@ -47,11 +54,16 @@ class _AddRxScreenState extends State<AddRxScreen> {
     setState(() => loading = false);
 
     if (res['success'] == true) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Prescription added')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Prescription added')),
+      );
       Navigator.pop(context, true);
     } else {
-      final msg = res['body']?['message'] ?? res['message'] ?? 'Failed to add';
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+      final msg =
+          res['body']?['message'] ?? res['message'] ?? 'Failed to add';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(msg.toString())),
+      );
     }
   }
 
@@ -68,22 +80,31 @@ class _AddRxScreenState extends State<AddRxScreen> {
               TextFormField(
                 controller: _diagnosisCtl,
                 decoration: const InputDecoration(labelText: 'Diagnosis'),
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter diagnosis' : null,
+                validator: (v) =>
+                    (v == null || v.trim().isEmpty) ? 'Enter diagnosis' : null,
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _medicineCtl,
-                decoration: const InputDecoration(labelText: 'Medicine (name, dosage)'),
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter medicine' : null,
+                decoration: const InputDecoration(
+                    labelText: 'Medicine (name, dosage)'),
+                validator: (v) =>
+                    (v == null || v.trim().isEmpty) ? 'Enter medicine' : null,
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _notesCtl,
-                decoration: const InputDecoration(labelText: 'Notes (optional)'),
+                decoration:
+                    const InputDecoration(labelText: 'Notes (optional)'),
                 maxLines: 3,
               ),
               const SizedBox(height: 20),
-              loading ? const CircularProgressIndicator() : ElevatedButton(onPressed: _submit, child: const Text('Save')),
+              loading
+                  ? const CircularProgressIndicator()
+                  : ElevatedButton(
+                      onPressed: _submit,
+                      child: const Text('Save'),
+                    ),
             ],
           ),
         ),

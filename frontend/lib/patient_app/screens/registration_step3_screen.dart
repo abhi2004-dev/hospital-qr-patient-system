@@ -1,186 +1,153 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'login_screen.dart';
+import 'registration_step4_screen.dart';
 
 class RegistrationStep3Screen extends StatefulWidget {
-  const RegistrationStep3Screen({Key? key}) : super(key: key);
+  final String email;
+  final String password;
+  final dynamic photo;
+
+  final String name;
+  final String dob;
+  final String phone;
+  final String gender;
+  final String bloodGroup;
+
+  const RegistrationStep3Screen({
+    Key? key,
+    required this.email,
+    required this.password,
+    required this.photo,
+    required this.name,
+    required this.dob,
+    required this.phone,
+    required this.gender,
+    required this.bloodGroup,
+  }) : super(key: key);
 
   @override
-  State<RegistrationStep3Screen> createState() => _RegistrationStep3ScreenState();
+  State<RegistrationStep3Screen> createState() =>
+      _RegistrationStep3ScreenState();
 }
 
 class _RegistrationStep3ScreenState extends State<RegistrationStep3Screen> {
-  final _guardianNameController = TextEditingController();
-  final _guardianContactController = TextEditingController();
+  final TextEditingController guardianNameCtrl = TextEditingController();
+  final TextEditingController guardianContactCtrl = TextEditingController();
+  final TextEditingController relationCtrl = TextEditingController();
+
+  void nextPage() {
+    if (guardianNameCtrl.text.trim().isEmpty ||
+        guardianContactCtrl.text.trim().isEmpty ||
+        relationCtrl.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please fill all fields")),
+      );
+      return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => RegistrationStep4Screen(
+          email: widget.email,
+          password: widget.password,
+          photo: widget.photo,
+          name: widget.name,
+          dob: widget.dob,
+          phone: widget.phone,
+          gender: widget.gender,
+          bloodGroup: widget.bloodGroup,
+
+          guardianName: guardianNameCtrl.text.trim(),
+          guardianContact: guardianContactCtrl.text.trim(),
+          relation: relationCtrl.text.trim(),
+        ),
+      ),
+    );
+  }
+
+  Widget field(String label, TextEditingController ctrl, String hint) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label,
+            style: GoogleFonts.poppins(
+                fontSize: 14, fontWeight: FontWeight.w600)),
+        const SizedBox(height: 6),
+        TextField(
+          controller: ctrl,
+          decoration: InputDecoration(
+            hintText: hint,
+            filled: true,
+            fillColor: Colors.white,
+            border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide.none),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          ),
+        ),
+        const SizedBox(height: 16),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
 
     return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: Container(
-        width: size.width,
-        height: size.height,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Color(0xFF9BD6DC),
-              Color(0xFF9BD6DC),
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          child: Column(
-            children: [
-              const SizedBox(height: 60),
+      backgroundColor: const Color(0xFF9BD6DC),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+        child: Column(
+          children: [
+            const SizedBox(height: 40),
+            Image.asset('assets/logo.png', width: 110, height: 110),
 
-              // Logo
-              Image.asset(
-                'assets/logo.png',
-                width: 110,
-                height: 110,
-              ),
-
-              const SizedBox(height: 10),
-
-              Text(
-                "Health meets Technology..",
+            const SizedBox(height: 10),
+            Text("Health meets Technology..",
                 style: GoogleFonts.montserrat(
-                  fontSize: 14,
-                  color: Colors.black87,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
+                    fontSize: 14, fontWeight: FontWeight.w400)),
 
-              const SizedBox(height: 20),
-
-              Text(
-                "PATIENT REGISTRATION",
+            const SizedBox(height: 16),
+            Text("PATIENT REGISTRATION",
                 style: GoogleFonts.poppins(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w800,
-                  color: const Color(0xFF0B0B5A),
-                  letterSpacing: 1.0,
-                  shadows: [
-                    const Shadow(
-                      offset: Offset(0.5, 0.5),
-                      blurRadius: 1,
-                      color: Colors.black26,
-                    ),
-                  ],
-                ),
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF0B0B5A))),
+
+            const SizedBox(height: 25),
+
+            Container(
+              width: size.width,
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 25, vertical: 25),
+              decoration: BoxDecoration(
+                color: const Color(0xFF7388F6),
+                borderRadius: BorderRadius.circular(25),
               ),
-
-              const SizedBox(height: 20),
-
-              // Blue Card Section
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 20),
-                padding: const EdgeInsets.symmetric(vertical: 25, horizontal: 25),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF7388F6),
-                  borderRadius: BorderRadius.circular(25),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildLabel("Guardian name"),
-                    _buildTextField(_guardianNameController, "guardian name", false),
-
-                    const SizedBox(height: 25),
-
-                    _buildLabel("Guardian contact"),
-                    _buildTextField(_guardianContactController, "guardian ph.no", false),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 40),
-
-              // Already have an account text + login button
-              Column(
+              child: Column(
                 children: [
-                  Text(
-                    "Already have an account?",
-                    style: GoogleFonts.poppins(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
+                  field("Guardian Name", guardianNameCtrl, "Enter name"),
+                  field("Guardian Contact", guardianContactCtrl, "10-digit number"),
+                  field("Relationship", relationCtrl, "Relation"),
+
+                  const SizedBox(height: 10),
+
                   ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const LoginScreen()),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF2F2F2F),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 25, vertical: 8),
-                    ),
-                    child: Text(
-                      "Login",
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
+                      onPressed: nextPage,
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF2F2F2F),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 50, vertical: 10)),
+                      child: const Text("Next",
+                          style:
+                              TextStyle(fontSize: 15, color: Colors.white))),
                 ],
               ),
-
-              const SizedBox(height: 40),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLabel(String text) {
-    return Text(
-      text,
-      style: GoogleFonts.poppins(
-        color: Colors.black,
-        fontSize: 13,
-        fontWeight: FontWeight.w500,
-      ),
-    );
-  }
-
-  Widget _buildTextField(
-      TextEditingController controller, String hint, bool obscure) {
-    return TextField(
-      controller: controller,
-      obscureText: obscure,
-      style: GoogleFonts.poppins(
-        fontSize: 14,
-        color: Colors.black,
-      ),
-      decoration: InputDecoration(
-        hintText: hint,
-        hintStyle: GoogleFonts.poppins(
-          color: Colors.grey[700],
-          fontSize: 13,
-        ),
-        contentPadding:
-            const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-        filled: true,
-        fillColor: Colors.white,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide.none,
+            ),
+          ],
         ),
       ),
     );

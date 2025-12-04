@@ -1,21 +1,22 @@
-// frontend/lib/doctor_app/services/api_services.dart
+﻿// frontend/lib/doctor_app/services/api_services.dart
+
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
-import '../models/doctor_model.dart';
 
-/// Backend base URL with /api
-const String baseUrl = "http://10.211.180.251:5000/api";
+import '../utils/constants.dart'; // contains baseUrl
 
-class ApiService {
-  // -------------------------
-  // Auth
-  // -------------------------
-  static Future<Map<String, dynamic>?> doctorLogin(
+class ApiServices {
+
+  /// ============================
+  /// DOCTOR LOGIN
+  /// ============================
+  static Future<Map<String, dynamic>> doctorLogin(
       String email, String password) async {
     try {
+      final uri = Uri.parse("$baseUrl/api/auth/doctor/login");
+
       final res = await http.post(
-        Uri.parse("$baseUrl/auth/doctor/login"),
+        uri,
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({
           "email": email,
@@ -23,74 +24,48 @@ class ApiService {
         }),
       );
 
-      // Expecting { success, token, doctor } or { success:false, message }
-      final decoded = jsonDecode(res.body) as Map<String, dynamic>;
-      return decoded;
-    } catch (e) {
-      print("ApiService.doctorLogin error: $e");
-      return {
-        "success": false,
-        "message": "Network error",
-      };
-    }
-  }
-
-  static Future<Map<String, dynamic>> doctorRegister({
-    required String name,
-    required String email,
-    required String password,
-    String? phone,
-    String? hospitalName,
-    String? specialization,
-  }) async {
-    try {
-      final res = await http.post(
-        Uri.parse("$baseUrl/auth/doctor/register"),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode({
-          "name": name,
-          "email": email,
-          "password": password,
-          "phone": phone,
-          "hospitalName": hospitalName,
-          "specialization": specialization,
-        }),
-      );
-
-      final decoded = jsonDecode(res.body) as Map<String, dynamic>;
-      return decoded;
-    } catch (e) {
-      print("ApiService.doctorRegister error: $e");
-      return {
-        "success": false,
-        "message": "Network error",
-      };
-    }
-  }
-
-  // -------------------------
-  // Profile
-  // -------------------------
-  static Future<Doctor?> getDoctorProfile() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('token');
-      if (token == null || token.isEmpty) return null;
-
-      final res = await http.get(
-        Uri.parse("$baseUrl/doctor/me"),
-        headers: {"Authorization": "Bearer $token"},
-      );
-
-      if (res.statusCode == 200) {
-        final body = jsonDecode(res.body) as Map<String, dynamic>;
-        final doctorJson = body['doctor'] as Map<String, dynamic>;
-        return Doctor.fromJson(doctorJson);
+      if (res.statusCode != 200) {
+        return {"success": false, "message": "Invalid credentials"};
       }
-      return null;
+
+      final data = jsonDecode(res.body);
+
+      // Normalize data so UI always receives:
+      // {success:true, token:"", doctor:{}}
+      final body = data["body"] ?? data;
+
+      return {
+        "success": body["success"] ?? data["success"],
+        "token": body["token"],
+        "doctor": body["doctor"],
+      };
+
     } catch (e) {
-      print("ApiService.getDoctorProfile error: $e");
-      return null;
+      return {"success": false, "message": "Network Error"};
+    }
+  }
+
+  /// ============================
+  /// DOCTOR REGISTRATION
+  /// ============================
+  static Future<Map<String, dynamic>> doctorRegister(
+      Map<String, dynamic> payload) async {
+    try {
+      final uri = Uri.parse("$baseUrl/api/auth/doctor/register");
+
+      final res = await http.post(
+        uri,
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(payload),
+      );
+
+      if (res.statusCode != 200) {
+        return {"success": false, "message": "Registration failed"};
+      }
+
+      return jsonDecode(res.body);
+    } catch (e) {
+      return {"success": false, "message": "Network Error"};
     }
   }
 }

@@ -1,246 +1,140 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class EmergencyInfoScreen extends StatelessWidget {
+const String _baseUrl = "http://192.168.252.251:5000";
+
+class EmergencyInfoScreen extends StatefulWidget {
   const EmergencyInfoScreen({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
+  State<EmergencyInfoScreen> createState() => _EmergencyInfoScreenState();
+}
 
+class _EmergencyInfoScreenState extends State<EmergencyInfoScreen> {
+  bool _loading = false;
+
+  String guardianName = "Not Provided";
+  String emergencyPhone = "Not Provided";
+  String relation = "Not Provided";
+
+  @override
+  void initState() {
+    super.initState();
+    _loadEmergencyInfo();
+  }
+
+  Future<void> _loadEmergencyInfo() async {
+    setState(() => _loading = true);
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      String patientId = prefs.getString("patient_id") ?? "";
+
+      if (patientId.isEmpty) patientId = "693060d28905ddd769c44b36";
+
+      final uri = Uri.parse("$_baseUrl/api/patient/$patientId");
+      final res = await http.get(uri);
+
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+
+        if (data["success"] == true) {
+          final p = data["patient"] ?? {};
+
+          setState(() {
+            guardianName = (p["guardianName"] ?? "Not Provided").toString();
+            emergencyPhone =
+                (p["guardianContact"] ?? "Not Provided").toString();
+            relation = (p["guardianRelation"] ?? "Not Provided").toString();
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint("Emergency info load error: $e");
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: Container(
-        width: size.width,
-        height: size.height,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Color(0xFF1A82B2),
-              Color(0xFF157BAA),
-              Color(0xFF1174A2),
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
+      backgroundColor: const Color(0xFF9BD6DC),
+      body: SingleChildScrollView(
         child: Column(
           children: [
             const SizedBox(height: 40),
 
-            // back arrow
-            Align(
-              alignment: Alignment.centerLeft,
-              child: IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.black),
-                onPressed: () => Navigator.pop(context),
-              ),
-            ),
-
-            // Title
             Text(
-              "Emergency\nInformation",
-              textAlign: TextAlign.center,
+              "EMERGENCY INFORMATION",
               style: GoogleFonts.poppins(
-                fontSize: 26,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
-                height: 1.0,
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+                color: const Color(0xFF0B0B5A),
               ),
             ),
 
-            const SizedBox(height: 15),
+            const SizedBox(height: 25),
 
-            Expanded(
-              child: Container(
-                width: size.width * 0.90,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFEAEAEA),
-                  borderRadius: BorderRadius.circular(18),
-                ),
-                padding: const EdgeInsets.all(18),
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Patient details header
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(vertical: 6),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFAED2F8),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Center(
-                          child: Text(
-                            "patient details",
-                            style: GoogleFonts.poppins(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 15),
-
-                      // Patient details content
-                      Row(
-                        children: [
-                          const Icon(Icons.person, size: 28),
-                          const SizedBox(width: 10),
-                          Text(
-                            "Patient name (age)",
-                            style: GoogleFonts.poppins(
-                              fontSize: 16,
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 15),
-
-                      Row(
-                        children: [
-                          const Icon(Icons.water_drop, size: 26),
-                          const SizedBox(width: 10),
-                          Text(
-                            "B+",
-                            style: GoogleFonts.poppins(
-                              fontSize: 16,
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 15),
-
-                      Row(
-                        children: [
-                          const Icon(Icons.phone, size: 26),
-                          const SizedBox(width: 10),
-                          Text(
-                            "contact",
-                            style: GoogleFonts.poppins(
-                              fontSize: 16,
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 25),
-
-                      // Guardian details header
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(vertical: 6),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFAED2F8),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Center(
-                          child: Text(
-                            "gaurdian details",
-                            style: GoogleFonts.poppins(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 20),
-
-                      Row(
-                        children: [
-                          const Icon(Icons.group, size: 28),
-                          const SizedBox(width: 10),
-                          Text(
-                            "Gaurdian name",
-                            style: GoogleFonts.poppins(fontSize: 16),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 15),
-
-                      Row(
-                        children: [
-                          const Icon(Icons.phone, size: 26),
-                          const SizedBox(width: 10),
-                          Text(
-                            "Gaurdian ph",
-                            style: GoogleFonts.poppins(fontSize: 16),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 25),
-
-                      Text(
-                        "Medical Info",
-                        style: GoogleFonts.poppins(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-
-                      const SizedBox(height: 10),
-
-                      Container(
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFAED2F8),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        padding: const EdgeInsets.all(12),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.medical_information,
-                                color: Colors.black, size: 30),
-                            const SizedBox(width: 10),
-                            Text(
-                              "My Medical\nInformation",
-                              style: GoogleFonts.poppins(
-                                  fontSize: 15, fontWeight: FontWeight.w600),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 30),
-
-                      // Share QR button
-                      Center(
-                        child: ElevatedButton(
-                          onPressed: () {},
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF0D6E9F),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 70, vertical: 12),
-                          ),
-                          child: Text(
-                            "Share my QR",
-                            style: GoogleFonts.poppins(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 25),
-                    ],
-                  ),
-                ),
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: const Color(0xFF7388F6),
+                borderRadius: BorderRadius.circular(20),
               ),
+              child: _loading
+                  ? const Center(
+                      child: CircularProgressIndicator(color: Colors.white))
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildItem("Guardian Name", guardianName),
+                        const SizedBox(height: 10),
+                        _buildItem("Contact Number", emergencyPhone),
+                        const SizedBox(height: 10),
+                        _buildItem("Relation", relation),
+                      ],
+                    ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildItem(String title, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: GoogleFonts.poppins(
+            color: Colors.white,
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 5),
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: const Color(0xFFB5CFE9),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Text(
+            value,
+            style: GoogleFonts.poppins(
+              color: Colors.black,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        )
+      ],
     );
   }
 }

@@ -1,11 +1,12 @@
 // frontend/lib/doctor_app/screens/dashboard_screen.dart
 import 'package:flutter/material.dart';
-import '../services/api_services.dart';
-import '../services/auth_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import '../models/doctor_model.dart';
-import 'qr_scanner_screen.dart';
 import '../utils/app_colors.dart';
-import 'patient_list_screen.dart'; // navigate to patient list before Add Rx
+import 'qr_scanner_screen.dart';
+import 'patient_list_screen.dart';
+import '../services/auth_service.dart';
 
 class DashboardScreen extends StatefulWidget {
   final String? token;
@@ -30,21 +31,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Future<void> _loadProfile() async {
     setState(() => loading = true);
     try {
-      // <-- FIXED: ApiService.getDoctorProfile does not accept token as an arg;
-      // it reads token from SharedPreferences internally.
-      final d = await ApiService.getDoctorProfile();
+      final prefs = await SharedPreferences.getInstance();
+
+      final id =
+          prefs.getString(AuthService.keyDoctorId) ?? widget.doctorId ?? "Unknown";
+      final name =
+          prefs.getString(AuthService.keyDoctorName) ?? "Unknown Doctor";
+      final specialization =
+          prefs.getString(AuthService.keyDoctorSpecialization) ?? "General";
+      final email =
+          prefs.getString(AuthService.keyDoctorEmail) ?? "";
+
       setState(() {
-        doctor = d ??
-            Doctor(
-              id: widget.doctorId ?? "D-000",
-              name: "Dr. Example",
-              specialization: "General",
-              email: "",
-            );
+        doctor = Doctor(
+          id: id,
+          name: name,
+          specialization: specialization,
+          email: email,
+        );
         loading = false;
       });
     } catch (e) {
-      // fallback to placeholder profile so UI still renders
       setState(() {
         doctor = Doctor(
           id: widget.doctorId ?? "D-000",
@@ -68,46 +75,51 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16),
-              child: Column(children: [
-                Card(
-                  child: ListTile(
-                    leading: const CircleAvatar(child: Icon(Icons.person)),
-                    title: Text(doctor?.name ?? ""),
-                    subtitle: Text(doctor?.specialization ?? ""),
+              child: Column(
+                children: [
+                  Card(
+                    child: ListTile(
+                      leading: const CircleAvatar(child: Icon(Icons.person)),
+                      title: Text(doctor?.name ?? ""),
+                      subtitle: Text(doctor?.specialization ?? ""),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
-                  children: [
-                    _tile("Scan QR", Icons.qr_code, () async {
-                      final code = await Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const QrScannerScreen()),
-                      );
-                      if (code != null) {
-                        // If you want to auto-open patient basic info after scanning,
-                        // handle that navigation here (pass scanned code to the screen).
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Scanned: $code")));
-                      }
-                    }),
-                    _tile("Add Rx", Icons.note_add, () {
-                      // Open patient list first. From patient list you can open AddRxScreen(patientId: ..., token: ...)
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const PatientListScreen()),
-                      );
-                    }),
-                    _tile("Logs", Icons.history, () {
-                      // TODO: replace with logs screen when ready
-                    }),
-                    _tile("Notifications", Icons.notifications, () {
-                      // TODO: replace with notifications screen when ready
-                    }),
-                  ],
-                ),
-              ]),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 12,
+                    runSpacing: 12,
+                    children: [
+                      _tile("Scan QR", Icons.qr_code, () async {
+                        final code = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const QrScannerScreen(),
+                          ),
+                        );
+                        if (code != null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text("Scanned: $code")),
+                          );
+                        }
+                      }),
+                      _tile("Add Rx", Icons.note_add, () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const PatientListScreen(),
+                          ),
+                        );
+                      }),
+                      _tile("Logs", Icons.history, () {
+                        // TODO: connect logs screen
+                      }),
+                      _tile("Notifications", Icons.notifications, () {
+                        // TODO: connect notifications screen
+                      }),
+                    ],
+                  ),
+                ],
+              ),
             ),
     );
   }
@@ -121,13 +133,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
           padding: const EdgeInsets.symmetric(vertical: 18),
           backgroundColor: Colors.white,
           foregroundColor: Colors.black,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Icon(icon, size: 34),
-          const SizedBox(height: 8),
-          Text(title, textAlign: TextAlign.center),
-        ]),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 34),
+            const SizedBox(height: 8),
+            Text(title, textAlign: TextAlign.center),
+          ],
+        ),
       ),
     );
   }

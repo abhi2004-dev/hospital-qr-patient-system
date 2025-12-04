@@ -1,13 +1,84 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
-  // Replace with your backend IP
-  static const String base = "http://10.211.180.251:5000";
+  // ⚠️ Make sure this matches your CURRENT backend IP
+  // Example: "http://10.152.28.251:5000"
+  static const String base = "http://192.168.252.251:5000";
 
-  // ============================
+  // =====================================================
+  // SAVE USER LOGIN DATA LOCALLY  (TOKEN + USER DETAILS)
+  // =====================================================
+  static Future<void> saveLoginData({
+    required String token,
+    required Map<String, dynamic> user,
+    required String role, // 'patient' or 'doctor'
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString("token", token);
+    await prefs.setString("role", role);
+    await prefs.setString("user", jsonEncode(user));
+    await prefs.setBool("loggedIn", true);
+  }
+
+  // Helper specifically for patient keys used by UI
+  static Future<void> _savePatientFields(
+      Map<String, dynamic> user, {
+        String? fallbackName,
+        String? fallbackPhone,
+        String? fallbackEmail,
+      }) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    final String id = (user["_id"] ??
+        user["id"] ??
+        user["patientId"] ??
+        "").toString();
+
+    final String name = (user["name"] ?? fallbackName ?? "").toString();
+    final String phone = (user["phone"] ?? fallbackPhone ?? "").toString();
+    final String email = (user["email"] ?? fallbackEmail ?? "").toString();
+    final String qrId = (user["qrId"] ?? "").toString();
+
+    await prefs.setString("patientId", id);
+    await prefs.setString("patientName", name);
+    await prefs.setString("patientPhone", phone);
+    await prefs.setString("patientEmail", email);
+    if (qrId.isNotEmpty) {
+      await prefs.setString("patientQrId", qrId);
+    }
+  }
+
+  // =====================================================
+  // CHECK IF USER IS LOGGED IN
+  // =====================================================
+  static Future<bool> isLoggedIn() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool("loggedIn") ?? false;
+  }
+
+  // =====================================================
+  // GET SAVED USER DATA (generic JSON)
+  // =====================================================
+  static Future<Map<String, dynamic>?> getSavedUser() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? user = prefs.getString("user");
+    if (user == null) return null;
+    return jsonDecode(user);
+  }
+
+  // =====================================================
+  // LOGOUT (CLEAR DATA)
+  // =====================================================
+  static Future<void> logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+  }
+
+  // =====================================================
   // REGISTER PATIENT
-  // ============================
+  // =====================================================
   static Future<Map<String, dynamic>> registerPatient({
     required String name,
     required String dob,
@@ -32,16 +103,46 @@ class AuthService {
         }),
       );
 
-      return jsonDecode(response.body);
+      final data = jsonDecode(response.body);
+
+      if (data["success"] == true) {
+        // handle both shapes:
+        // { success, token, user } OR { success, body: { token, patient } }
+        final body = data["body"] ?? {};
+        final user = data["user"] ??
+            body["patient"] ??
+            body["user"] ??
+            <String, dynamic>{};
+
+        final String token =
+            (data["token"] ?? body["token"] ?? "").toString();
+
+        if (token.isNotEmpty) {
+          await saveLoginData(
+            token: token,
+            user: user,
+            role: "patient",
+          );
+        }
+
+        await _savePatientFields(
+          user,
+          fallbackName: name,
+          fallbackPhone: phone,
+          fallbackEmail: email,
+        );
+      }
+
+      return data;
     } catch (e) {
       print("❌ Patient Register Error: $e");
       return {"success": false, "message": "Network error"};
     }
   }
 
-  // ============================
+  // =====================================================
   // LOGIN PATIENT
-  // ============================
+  // =====================================================
   static Future<Map<String, dynamic>> loginPatient({
     required String email,
     required String password,
@@ -56,16 +157,42 @@ class AuthService {
         }),
       );
 
-      return jsonDecode(response.body);
+      final data = jsonDecode(response.body);
+
+      if (data["success"] == true) {
+        final body = data["body"] ?? {};
+        final user = data["user"] ??
+            body["patient"] ??
+            body["user"] ??
+            <String, dynamic>{};
+
+        final String token =
+            (data["token"] ?? body["token"] ?? "").toString();
+
+        if (token.isNotEmpty) {
+          await saveLoginData(
+            token: token,
+            user: user,
+            role: "patient",
+          );
+        }
+
+        await _savePatientFields(
+          user,
+          fallbackEmail: email,
+        );
+      }
+
+      return data;
     } catch (e) {
       print("❌ Patient Login Error: $e");
       return {"success": false, "message": "Network error"};
     }
   }
 
-  // ============================
-  // UPDATE PROFILE
-  // ============================
+  // =====================================================
+  // UPDATE PATIENT PROFILE
+  // =====================================================
   static Future<Map<String, dynamic>> updateProfile({
     required String patientID,
     required String name,
@@ -87,16 +214,35 @@ class AuthService {
         }),
       );
 
-      return jsonDecode(response.body);
+      final data = jsonDecode(response.body);
+
+      // If backend returns updated patient, refresh local cache
+      if (data["success"] == true) {
+        final body = data["body"] ?? {};
+        final user = data["patient"] ??
+            data["user"] ??
+            body["patient"] ??
+            body["user"] ??
+            <String, dynamic>{};
+
+        await _savePatientFields(
+          user,
+          fallbackName: name,
+          fallbackPhone: phone,
+          fallbackEmail: email,
+        );
+      }
+
+      return data;
     } catch (e) {
       print("❌ Patient Update Error: $e");
       return {"success": false, "message": "Network error"};
     }
   }
 
-  // ============================
+  // =====================================================
   // FETCH PATIENT DATA
-  // ============================
+  // =====================================================
   static Future<Map<String, dynamic>> getPatient(String patientID) async {
     try {
       final response = await http.get(

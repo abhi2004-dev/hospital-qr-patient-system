@@ -16,11 +16,14 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   String _name = "";
+  String _dob = "";
   String _age = "";
   String _email = "";
   String _phone = "";
   String _address = "";
   String _patientId = "";
+  String _bloodGroup = "";
+  List<dynamic> _allergies = [];
   bool _loading = true;
 
   @override
@@ -31,9 +34,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _loadPatient() async {
     setState(() => _loading = true);
+
     try {
       final prefs = await SharedPreferences.getInstance();
-      final id = prefs.getString('patientId');
+      final id = prefs.getString('patient_id'); // ✔ correct key
 
       if (id == null || id.isEmpty) {
         setState(() => _loading = false);
@@ -42,37 +46,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       _patientId = id;
 
+      // 🔥 Fetch from backend using your AuthService
       final res = await patient_auth.AuthService.getPatient(id);
 
-      if (res['success'] == true) {
-        final dynamic patientRaw = res['patient'] ?? res['data'];
-        if (patientRaw is Map<String, dynamic>) {
-          final p = patientRaw;
-          setState(() {
-            _name = (p['name'] ?? '').toString();
-            _email = (p['email'] ?? '').toString();
-            _phone = (p['phone'] ?? '').toString();
-            _address = (p['address'] ?? '').toString();
-            final dob = (p['dob'] ?? '').toString();
-            _age = p['age']?.toString() ??
-                (dob.isNotEmpty ? "DOB: $dob" : "");
-            _loading = false;
-          });
-          return;
-        }
+      if (res["success"] == true && res["patient"] != null) {
+        final p = res["patient"];
+
+        setState(() {
+          _name = (p["name"] ?? "").toString();
+          _email = (p["email"] ?? "").toString();
+          _phone = (p["phone"] ?? "").toString();
+          _address = (p["address"] ?? "").toString();
+          _dob = (p["dob"] ?? "").toString();
+          _bloodGroup = (p["bloodGroup"] ?? "").toString();
+          _allergies = (p["allergies"] ?? []);
+
+          // 🧮 If age not stored, fallback to DOB
+          if (p["age"] != null) {
+            _age = p["age"].toString();
+          } else if (_dob.isNotEmpty) {
+            _age = "DOB: $_dob";
+          }
+
+          _loading = false;
+        });
+        return;
       }
 
-      // fallback: at least load from SharedPreferences if set
+      // Fallback if backend returned no data
       setState(() {
-        _name = prefs.getString('patientName') ?? "";
-        _email = prefs.getString('patientEmail') ?? "";
-        _phone = prefs.getString('patientPhone') ?? "";
+        _name = prefs.getString('patient_name') ?? "";
+        _email = prefs.getString('patient_email') ?? "";
+        _phone = prefs.getString('patient_phone') ?? "";
         _loading = false;
       });
     } catch (e) {
-      setState(() {
-        _loading = false;
-      });
+      setState(() => _loading = false);
     }
   }
 
@@ -98,6 +107,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               : Column(
                   children: [
                     const SizedBox(height: 20),
+
+                    // ---------------- TOP BAR ----------------
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: Row(
@@ -126,7 +137,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ],
                       ),
                     ),
+
                     const SizedBox(height: 24),
+
+                    // ---------------- BODY ----------------
                     Expanded(
                       child: SingleChildScrollView(
                         child: Padding(
@@ -134,7 +148,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               horizontal: 20, vertical: 10),
                           child: Column(
                             children: [
-                              // Top card: avatar + name + age + ID
+                              // ---------------- TOP CARD ----------------
                               Container(
                                 padding: const EdgeInsets.all(16),
                                 decoration: BoxDecoration(
@@ -167,14 +181,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                           ),
                                         ),
                                         const SizedBox(height: 6),
-                                        if (_patientId.isNotEmpty)
-                                          Text(
-                                            "Patient ID: $_patientId",
-                                            style: GoogleFonts.poppins(
-                                              fontSize: 14,
-                                              color: Colors.grey[700],
-                                            ),
+                                        Text(
+                                          "Patient ID: $_patientId",
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 14,
+                                            color: Colors.grey[700],
                                           ),
+                                        ),
                                       ],
                                     ),
                                   ],
@@ -183,7 +196,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                               const SizedBox(height: 18),
 
-                              // Contact / address card
+                              // ---------------- CONTACT CARD ----------------
                               Container(
                                 padding: const EdgeInsets.all(16),
                                 decoration: BoxDecoration(
@@ -200,7 +213,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         fontWeight: FontWeight.w600,
                                       ),
                                     ),
+
                                     const SizedBox(height: 8),
+
+                                    // Phone
                                     Row(
                                       children: [
                                         const Icon(Icons.phone, size: 20),
@@ -215,7 +231,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         ),
                                       ],
                                     ),
+
                                     const SizedBox(height: 8),
+
+                                    // Email
                                     Row(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
@@ -234,7 +253,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         ),
                                       ],
                                     ),
+
                                     const SizedBox(height: 12),
+
+                                    // Address
                                     Text(
                                       "Address",
                                       style: GoogleFonts.poppins(
@@ -251,13 +273,49 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         fontSize: 14,
                                       ),
                                     ),
+
+                                    const SizedBox(height: 12),
+
+                                    // Blood group
+                                    Text(
+                                      "Blood Group",
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      _bloodGroup.isNotEmpty
+                                          ? _bloodGroup
+                                          : "Not provided",
+                                      style: GoogleFonts.poppins(fontSize: 14),
+                                    ),
+
+                                    const SizedBox(height: 12),
+
+                                    // Allergies
+                                    Text(
+                                      "Allergies",
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      _allergies.isNotEmpty
+                                          ? _allergies.join(", ")
+                                          : "None",
+                                      style: GoogleFonts.poppins(fontSize: 14),
+                                    ),
                                   ],
                                 ),
                               ),
 
                               const SizedBox(height: 20),
 
-                              // Buttons: Edit + Home
+                              // ---------------- BUTTONS ----------------
                               Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceEvenly,

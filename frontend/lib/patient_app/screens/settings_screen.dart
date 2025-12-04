@@ -1,15 +1,60 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import 'edit_profile_screen.dart';
 import 'change_password_screen.dart';
 import 'notification_screen.dart';
 import 'login_screen.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends StatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
 
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  String _name = "Patient name";
+  String _patientId = "Patient ID";
+  String _email = "email";
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPatientInfo();
+  }
+
+  Future<void> _loadPatientInfo() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _name = prefs.getString("patient_name") ?? "Patient name";
+      _patientId = prefs.getString("patient_id") ?? "Patient ID";
+      _email = prefs.getString("patient_email") ??
+          prefs.getString("patient_phone") ??
+          "email";
+    });
+  }
+
+  Future<void> _logout(BuildContext context) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove("patient_logged_in");
+    await prefs.remove("patient_token");
+    await prefs.remove("patient_id");
+    await prefs.remove("patient_name");
+    await prefs.remove("patient_phone");
+    await prefs.remove("patient_email");
+    await prefs.remove("patient_qrId");
+
+    if (!mounted) return;
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+    );
+  }
+
   // LOGOUT POPUP
-    void _showLogoutPopup(BuildContext context) {
+  void _showLogoutPopup(BuildContext context) {
     showDialog(
       context: context,
       builder: (context) {
@@ -30,12 +75,9 @@ class SettingsScreen extends StatelessWidget {
               child: const Text("Cancel"),
             ),
             TextButton(
-              onPressed: () {
+              onPressed: () async {
                 Navigator.pop(context); // close popup
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (_) => const LoginScreen()),
-                );
+                await _logout(context);
               },
               child: const Text(
                 "Logout",
@@ -93,18 +135,18 @@ class SettingsScreen extends StatelessWidget {
                             size: 70, color: Colors.black87),
                         const SizedBox(height: 10),
                         Text(
-                          "Patient name",
+                          _name,
                           style: GoogleFonts.poppins(
                             fontSize: 20,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
                         Text(
-                          "Patient ID",
+                          _patientId,
                           style: GoogleFonts.poppins(fontSize: 16),
                         ),
                         Text(
-                          "email",
+                          _email,
                           style: GoogleFonts.poppins(fontSize: 16),
                         ),
                       ],
@@ -140,8 +182,8 @@ class SettingsScreen extends StatelessWidget {
                           "Edit Profile",
                           style: GoogleFonts.poppins(fontSize: 16),
                         ),
-                        trailing: const Icon(Icons.arrow_forward_ios,
-                            size: 18),
+                        trailing:
+                            const Icon(Icons.arrow_forward_ios, size: 18),
                         onTap: () {
                           Navigator.push(
                             context,
@@ -160,7 +202,8 @@ class SettingsScreen extends StatelessWidget {
                           "Change Password",
                           style: GoogleFonts.poppins(fontSize: 16),
                         ),
-                        trailing: const Icon(Icons.arrow_forward_ios, size: 18),
+                        trailing:
+                            const Icon(Icons.arrow_forward_ios, size: 18),
                         onTap: () {
                           Navigator.push(
                             context,
@@ -179,7 +222,8 @@ class SettingsScreen extends StatelessWidget {
                           "Notifications",
                           style: GoogleFonts.poppins(fontSize: 16),
                         ),
-                        trailing: const Icon(Icons.arrow_forward_ios, size: 18),
+                        trailing:
+                            const Icon(Icons.arrow_forward_ios, size: 18),
                         onTap: () {
                           Navigator.push(
                             context,
@@ -198,7 +242,8 @@ class SettingsScreen extends StatelessWidget {
                           "Logout",
                           style: GoogleFonts.poppins(fontSize: 16),
                         ),
-                        trailing: const Icon(Icons.arrow_forward_ios, size: 18),
+                        trailing:
+                            const Icon(Icons.arrow_forward_ios, size: 18),
                         onTap: () {
                           _showLogoutPopup(context);
                         },

@@ -1,5 +1,6 @@
 // frontend/lib/doctor_app/screens/doctor_login_screen.dart
 import 'package:flutter/material.dart';
+
 import '../services/api_services.dart';
 import '../services/auth_service.dart';
 import 'dashboard_screen.dart';
@@ -35,7 +36,7 @@ class _DoctorLoginScreenState extends State<DoctorLoginScreen> {
 
     setState(() => loading = true);
 
-    final res = await ApiService.doctorLogin(email, pass);
+    final res = await ApiServices.doctorLogin(email, pass);
 
     setState(() => loading = false);
 
@@ -52,42 +53,57 @@ class _DoctorLoginScreenState extends State<DoctorLoginScreen> {
       return;
     }
 
-    // Accept both shapes:
-    // {success, token, doctor} OR {success, body: {token, doctor}}
-    final Map<String, dynamic> topLevel = res;
-    final dynamic bodyMaybe = topLevel['body'];
-    final Map<String, dynamic> body =
-        bodyMaybe is Map<String, dynamic> ? bodyMaybe : topLevel;
+    // Backend shape: { success, body: { token, doctor: { ... } } }
+    final dynamic bodyRaw = res['body'];
+    if (bodyRaw is! Map<String, dynamic>) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Invalid login response")),
+      );
+      return;
+    }
 
-    final String? token = body['token'] as String?;
+    final body = bodyRaw;
+    final token = body['token'];
     final dynamic doctorRaw = body['doctor'];
-    final Map<String, dynamic>? doctorMap =
-        doctorRaw is Map<String, dynamic> ? doctorRaw : null;
 
-    if (token == null || doctorMap == null) {
+    if (token == null || doctorRaw is! Map<String, dynamic>) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Login response missing doctor data.")),
       );
       return;
     }
 
+    final Map<String, dynamic> doctor = doctorRaw;
+
     final String doctorId =
-        (doctorMap['_id'] ?? doctorMap['id'] ?? '').toString();
-    final String doctorName = (doctorMap['name'] ?? '').toString();
-    final String doctorEmail = (doctorMap['email'] ?? email).toString();
+        (doctor['_id'] ?? doctor['id'] ?? '').toString();
+    final String doctorName = (doctor['name'] ?? '').toString();
+    final String doctorEmail =
+        (doctor['email'] ?? email).toString();
+
+    // specialization can be List or String or missing
+    String specialization = "General";
+    final specValue = doctor['specialization'];
+    if (specValue is List) {
+      specialization = specValue.join(", ");
+    } else if (specValue != null) {
+      specialization = specValue.toString();
+    }
 
     await AuthService.saveDoctorSession(
-      token: token,
+      token: token.toString(),
       id: doctorId,
       name: doctorName,
       email: doctorEmail,
+      specialization: specialization,
     );
 
+    if (!mounted) return;
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
         builder: (_) => DashboardScreen(
-          token: token,
+          token: token.toString(),
           doctorId: doctorId,
         ),
       ),
@@ -133,7 +149,7 @@ class _DoctorLoginScreenState extends State<DoctorLoginScreen> {
                     : const Text("Login"),
               ),
               const SizedBox(height: 12),
-              // (rest of your existing buttons/links, if any, can stay same)
+              // keep rest of UI same if you had extra buttons/links
             ],
           ),
         ),

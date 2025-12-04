@@ -1,11 +1,12 @@
-// frontend/lib/doctor_app/utils/constants.dart
+﻿// frontend/lib/doctor_app/utils/constants.dart
 
 const String appName = "Hospital QR Doctor App";
 
-/// Your backend IP address WITHOUT /api at end.
-/// Example: "http://192.168.244.251:5000"
-/// Replace with YOUR laptop IPv4.
-const String baseUrl = "http://10.211.180.251:5000";
+/// Your backend IP (no /api at end)
+const String baseUrl = "http://192.168.252.251:5000";
+
+/// Optional alias if some old code still uses `base`
+const String base = baseUrl;
 
 /// Secure storage keys
 const String tokenKey = "doctor_token_key";

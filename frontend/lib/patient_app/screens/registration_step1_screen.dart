@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 import 'registration_step2_screen.dart';
 
 class PatientRegistrationStep1 extends StatefulWidget {
@@ -13,74 +14,37 @@ class PatientRegistrationStep1 extends StatefulWidget {
 class _PatientRegistrationStep1State extends State<PatientRegistrationStep1> {
   final _formKey = GlobalKey<FormState>();
 
-  final TextEditingController nameCtrl = TextEditingController();
-  final TextEditingController dobCtrl = TextEditingController();
-  final TextEditingController phoneCtrl = TextEditingController();
-  final TextEditingController insuranceCtrl = TextEditingController();
-  final TextEditingController guardianNameCtrl = TextEditingController();
-  final TextEditingController guardianPhoneCtrl = TextEditingController();
-  final TextEditingController relationCtrl = TextEditingController();
-  final TextEditingController medsCtrl = TextEditingController();
-  final TextEditingController surgeriesCtrl = TextEditingController();
+  final TextEditingController emailCtrl = TextEditingController();
+  final TextEditingController passCtrl = TextEditingController();
+  final TextEditingController confirmPassCtrl = TextEditingController();
 
-  String? selectedBloodGroup;
-  final List<String> bloodGroups = [
-    'A+',
-    'A-',
-    'B+',
-    'B-',
-    'O+',
-    'O-',
-    'AB+',
-    'AB-'
-  ];
-
-  // simple allergies list you can expand
-  final List<String> allergiesPool = [
-    'Pollen',
-    'Dust',
-    'Penicillin',
-    'Peanuts',
-    'Seafood',
-    'Latex',
-    'None'
-  ];
-  List<String> selectedAllergies = [];
+  File? selectedImage;
 
   @override
   void dispose() {
-    nameCtrl.dispose();
-    dobCtrl.dispose();
-    phoneCtrl.dispose();
-    insuranceCtrl.dispose();
-    guardianNameCtrl.dispose();
-    guardianPhoneCtrl.dispose();
-    relationCtrl.dispose();
-    medsCtrl.dispose();
-    surgeriesCtrl.dispose();
+    emailCtrl.dispose();
+    passCtrl.dispose();
+    confirmPassCtrl.dispose();
     super.dispose();
   }
 
-  Future<void> _pickDob() async {
-    final now = DateTime.now();
-    final initial = DateTime(now.year - 25, now.month, now.day);
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: initial,
-      firstDate: DateTime(1900),
-      lastDate: now,
-    );
+  Future<void> pickPhoto() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(source: ImageSource.gallery);
     if (picked != null) {
-      dobCtrl.text = DateFormat('yyyy-MM-dd').format(picked);
-      setState(() {});
+      setState(() {
+        selectedImage = File(picked.path);
+      });
     }
   }
 
-  void _next() {
+  void _goNext() {
     if (!_formKey.currentState!.validate()) return;
-    if (selectedBloodGroup == null) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text("Please select blood group")));
+
+    if (selectedImage == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please upload a photo")),
+      );
       return;
     }
 
@@ -88,34 +52,33 @@ class _PatientRegistrationStep1State extends State<PatientRegistrationStep1> {
       context,
       MaterialPageRoute(
         builder: (_) => RegistrationStep2Screen(
-          name: nameCtrl.text.trim(),
-          dob: dobCtrl.text.trim(),
-          phone: phoneCtrl.text.trim(),
-          bloodGroup: selectedBloodGroup!,
-          allergies: selectedAllergies,
-          currentMeds: medsCtrl.text.trim(),
-          pastSurgeries: surgeriesCtrl.text.trim(),
-          insuranceProvider: insuranceCtrl.text.trim(),
-          guardianName: guardianNameCtrl.text.trim(),
-          guardianPhone: guardianPhoneCtrl.text.trim(),
-          guardianRelation: relationCtrl.text.trim(),
+          email: emailCtrl.text.trim(),
+          password: passCtrl.text.trim(),
+          photo: selectedImage!,
         ),
       ),
     );
   }
 
-  Widget _input(TextEditingController c, String hint,
-      {TextInputType keyboard = TextInputType.text, String? Function(String?)? validator}) {
+  Widget _textField(TextEditingController c, String hint,
+      {bool obscure = false}) {
     return TextFormField(
       controller: c,
-      keyboardType: keyboard,
-      validator: validator,
+      obscureText: obscure,
+      validator: (v) {
+        if (v == null || v.trim().isEmpty) return "$hint is required";
+        return null;
+      },
       decoration: InputDecoration(
         hintText: hint,
         filled: true,
         fillColor: Colors.white,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
       ),
     );
   }
@@ -123,126 +86,133 @@ class _PatientRegistrationStep1State extends State<PatientRegistrationStep1> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFEFFBF8),
-      appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0, leading: const BackButton(color: Colors.black)),
+      backgroundColor: const Color(0xFF9BD6DC),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-          child: Form(
-            key: _formKey,
-            child: Column(children: [
-              Image.asset('assets/logo.png', height: 84),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+          child: Column(
+            children: [
+              Image.asset('assets/logo.png', height: 100),
               const SizedBox(height: 8),
-              const Text("Patient Registration", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 16),
 
-              _input(nameCtrl, "Full Name", validator: (v) {
-                if (v == null || v.trim().isEmpty) return "Name required";
-                return null;
-              }),
-              const SizedBox(height: 12),
+              const Text("Health meets Technology..",
+                  style: TextStyle(fontSize: 14, color: Colors.black87)),
 
-              // DOB (date picker)
-              TextFormField(
-                controller: dobCtrl,
-                readOnly: true,
-                onTap: _pickDob,
-                validator: (v) {
-                  if (v == null || v.trim().isEmpty) return "Date of birth required";
-                  return null;
-                },
-                decoration: InputDecoration(
-                  hintText: "Date of birth",
-                  filled: true,
-                  fillColor: Colors.white,
-                  suffixIcon: const Icon(Icons.calendar_today),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+              const SizedBox(height: 10),
+
+              const Text(
+                "PATIENT REGISTRATION",
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF0B0B5A),
                 ),
               ),
-              const SizedBox(height: 12),
 
-              _input(phoneCtrl, "Phone (10 digits)", keyboard: TextInputType.phone, validator: (v) {
-                if (v == null || v.trim().isEmpty) return "Phone required";
-                if (!RegExp(r"^[0-9]{10}$").hasMatch(v)) return "Enter 10 digit phone";
-                return null;
-              }),
-              const SizedBox(height: 12),
-
-              // Blood group dropdown
-              const Align(alignment: Alignment.centerLeft, child: Text("Blood Group", style: TextStyle(fontWeight: FontWeight.bold))),
-              const SizedBox(height: 6),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    hint: const Text("Select blood group"),
-                    value: selectedBloodGroup,
-                    items: bloodGroups.map((b) => DropdownMenuItem(value: b, child: Text(b))).toList(),
-                    onChanged: (v) => setState(() => selectedBloodGroup = v),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-
-              // Allergies - selectable chips from pool
-              const Align(alignment: Alignment.centerLeft, child: Text("Allergies (tap to select)", style: TextStyle(fontWeight: FontWeight.bold))),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: allergiesPool.map((a) {
-                  final selected = selectedAllergies.contains(a);
-                  return FilterChip(
-                    label: Text(a),
-                    selected: selected,
-                    onSelected: (s) {
-                      setState(() {
-                        if (s) {
-                          if (!selectedAllergies.contains(a)) selectedAllergies.add(a);
-                        } else {
-                          selectedAllergies.remove(a);
-                        }
-                      });
-                    },
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 12),
-
-              _input(medsCtrl, "Current medications (comma separated)", validator: (v) => null),
-              const SizedBox(height: 12),
-
-              _input(surgeriesCtrl, "Past surgeries (brief)", validator: (v) => null),
-              const SizedBox(height: 12),
-
-              _input(insuranceCtrl, "Insurance provider (optional)", validator: (v) => null),
-              const SizedBox(height: 12),
-
-              const SizedBox(height: 6),
-              const Align(alignment: Alignment.centerLeft, child: Text("Emergency contact", style: TextStyle(fontWeight: FontWeight.bold))),
-              const SizedBox(height: 8),
-              _input(guardianNameCtrl, "Guardian name", validator: (v) {
-                if (v == null || v.trim().isEmpty) return "Guardian required";
-                return null;
-              }),
-              const SizedBox(height: 8),
-              _input(guardianPhoneCtrl, "Guardian phone (10 digits)", keyboard: TextInputType.phone, validator: (v) {
-                if (v == null || v.trim().isEmpty) return "Guardian phone required";
-                if (!RegExp(r"^[0-9]{10}$").hasMatch(v)) return "Enter 10 digit phone";
-                return null;
-              }),
-              const SizedBox(height: 8),
-              _input(relationCtrl, "Relation with emergency contact", validator: (v) {
-                if (v == null || v.trim().isEmpty) return "Relation required";
-                return null;
-              }),
-              const SizedBox(height: 18),
-
-              ElevatedButton(onPressed: _next, style: ElevatedButton.styleFrom(backgroundColor: Colors.black87), child: const Text("Continue")),
               const SizedBox(height: 20),
-            ]),
+
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 22, vertical: 26),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF7388F6),
+                  borderRadius: BorderRadius.circular(25),
+                ),
+                child: Form(
+                  key: _formKey,
+                  child: Column(children: [
+                    const Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text("enter your email",
+                            style: TextStyle(
+                                fontSize: 14, fontWeight: FontWeight.w500))),
+                    const SizedBox(height: 6),
+                    _textField(emailCtrl, "Email"),
+                    const SizedBox(height: 16),
+
+                    const Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text("Enter password",
+                            style: TextStyle(
+                                fontSize: 14, fontWeight: FontWeight.w500))),
+                    const SizedBox(height: 6),
+                    _textField(passCtrl, "password", obscure: true),
+                    const SizedBox(height: 16),
+
+                    const Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text("confirm password",
+                            style: TextStyle(
+                                fontSize: 14, fontWeight: FontWeight.w500))),
+                    const SizedBox(height: 6),
+                    TextFormField(
+                      controller: confirmPassCtrl,
+                      obscureText: true,
+                      validator: (v) {
+                        if (v == null || v.isEmpty) {
+                          return "Confirm password is required";
+                        }
+                        if (v.trim() != passCtrl.text.trim()) {
+                          return "Passwords do not match";
+                        }
+                        return null;
+                      },
+                      decoration: InputDecoration(
+                        hintText: "password",
+                        filled: true,
+                        fillColor: Colors.white,
+                        contentPadding:
+                            const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none),
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+
+                    const Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text("upload photo",
+                            style: TextStyle(
+                                fontSize: 14, fontWeight: FontWeight.w500))),
+                    const SizedBox(height: 6),
+
+                    GestureDetector(
+                      onTap: pickPhoto,
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 14, horizontal: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          selectedImage == null
+                              ? "jpg/png format"
+                              : "Photo selected ✔",
+                          style: const TextStyle(color: Colors.black87),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 22),
+
+                    ElevatedButton(
+                      onPressed: _goNext,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.black87,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 40, vertical: 12),
+                      ),
+                      child: const Text("Register"),
+                    ),
+                  ]),
+                ),
+              ),
+
+              const SizedBox(height: 20),
+            ],
           ),
         ),
       ),

@@ -1,22 +1,50 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'registration_step3_screen.dart';
+import 'registration_step5_screen.dart';
 
 class RegistrationStep4Screen extends StatefulWidget {
-  const RegistrationStep4Screen({Key? key}) : super(key: key);
+  final String email;
+  final String password;
+  final dynamic photo;
+
+  final String name;
+  final String dob;
+  final String phone;
+  final String gender;
+  final String bloodGroup;
+
+  final String guardianName;
+  final String guardianContact;
+  final String relation;
+
+  const RegistrationStep4Screen({
+    Key? key,
+    required this.email,
+    required this.password,
+    required this.photo,
+    required this.name,
+    required this.dob,
+    required this.phone,
+    required this.gender,
+    required this.bloodGroup,
+    required this.guardianName,
+    required this.guardianContact,
+    required this.relation,
+  }) : super(key: key);
 
   @override
-  State<RegistrationStep4Screen> createState() => _RegistrationStep4ScreenState();
+  State<RegistrationStep4Screen> createState() =>
+      _RegistrationStep4ScreenState();
 }
 
 class _RegistrationStep4ScreenState extends State<RegistrationStep4Screen> {
-  final _medicationController = TextEditingController();
-  final _surgeryController = TextEditingController();
-  final _chronicController = TextEditingController();
-  final _insuranceController = TextEditingController();
+  final TextEditingController medsCtrl = TextEditingController();
+  final TextEditingController surgeryCtrl = TextEditingController();
+  final TextEditingController chronicCtrl = TextEditingController();
+  final TextEditingController insuranceCtrl = TextEditingController();
 
-  String? _selectedAllergy;
-  final List<String> _allergyOptions = [
+  String? allergy;
+  final List<String> allergyOptions = [
     "No known allergies",
     "Penicillin",
     "Peanuts",
@@ -24,222 +52,155 @@ class _RegistrationStep4ScreenState extends State<RegistrationStep4Screen> {
     "Other"
   ];
 
+  void nextPage() {
+    if (allergy == null ||
+        medsCtrl.text.trim().isEmpty ||
+        surgeryCtrl.text.trim().isEmpty ||
+        chronicCtrl.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please fill all required fields")),
+      );
+      return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => RegistrationStep5Screen(
+          email: widget.email,
+          password: widget.password,
+          photo: widget.photo,
+
+          name: widget.name,
+          dob: widget.dob,
+          phone: widget.phone,
+          gender: widget.gender,
+          bloodGroup: widget.bloodGroup,
+
+          guardianName: widget.guardianName,
+          guardianContact: widget.guardianContact,
+          relation: widget.relation,
+
+          allergy: allergy!,
+          medications: medsCtrl.text.trim(),
+          pastSurgery: surgeryCtrl.text.trim(),
+          chronicIllness: chronicCtrl.text.trim(),
+          insurance: insuranceCtrl.text.trim(),
+        ),
+      ),
+    );
+  }
+
+  Widget field(String label, TextEditingController ctrl, String hint) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label,
+            style: GoogleFonts.poppins(
+                fontSize: 14, fontWeight: FontWeight.w600)),
+        const SizedBox(height: 6),
+        TextField(
+          controller: ctrl,
+          decoration: InputDecoration(
+              hintText: hint,
+              filled: true,
+              fillColor: Colors.white,
+              border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide.none),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 12)),
+        ),
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+
+  Widget dropdown() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      decoration: BoxDecoration(
+          color: Colors.white, borderRadius: BorderRadius.circular(10)),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          isExpanded: true,
+          value: allergy,
+          hint: const Text("Select allergy"),
+          items: allergyOptions
+              .map((item) =>
+                  DropdownMenuItem(value: item, child: Text(item)))
+              .toList(),
+          onChanged: (v) => setState(() => allergy = v),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
 
     return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: Container(
-        width: size.width,
-        height: size.height,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF9BD6DC), Color(0xFF9BD6DC)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(height: 40),
+      backgroundColor: const Color(0xFF9BD6DC),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+        child: Column(
+          children: [
+            const SizedBox(height: 40),
+            Image.asset('assets/logo.png', width: 110, height: 110),
 
-              // Back Arrow
-              Align(
-                alignment: Alignment.centerLeft,
-                child: IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.black),
-                  onPressed: () {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const RegistrationStep3Screen(),
-                      ),
-                    );
-                  },
-                ),
-              ),
-
-              // Logo
-              Image.asset('assets/logo.png', width: 110, height: 110),
-
-              const SizedBox(height: 10),
-
-              // Tagline
-              Text(
-                "Health meets Technology..",
+            const SizedBox(height: 10),
+            Text("Health meets Technology..",
                 style: GoogleFonts.montserrat(
-                  fontSize: 14,
-                  color: Colors.black87,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
+                    fontSize: 14, fontWeight: FontWeight.w400)),
 
-              const SizedBox(height: 20),
-
-              // Title
-              Text(
-                "MEDICAL INFORMATION",
+            const SizedBox(height: 16),
+            Text("MEDICAL INFORMATION",
                 style: GoogleFonts.poppins(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w800,
-                  color: const Color(0xFF0B0B5A),
-                  letterSpacing: 1.0,
-                  shadows: [
-                    const Shadow(
-                      offset: Offset(0.5, 0.5),
-                      blurRadius: 1,
-                      color: Colors.black26,
-                    ),
-                  ],
-                ),
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF0B0B5A))),
+
+            const SizedBox(height: 25),
+
+            Container(
+              width: size.width,
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 25, vertical: 25),
+              decoration: BoxDecoration(
+                color: const Color(0xFF7388F6),
+                borderRadius: BorderRadius.circular(25),
               ),
+              child: Column(
+                children: [
+                  Text("Allergies",
+                      style: GoogleFonts.poppins(
+                          fontSize: 14, fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 6),
+                  dropdown(),
+                  const SizedBox(height: 16),
 
-              const SizedBox(height: 25),
+                  field("Current Medication", medsCtrl, "Enter medications"),
+                  field("Past Surgery", surgeryCtrl, "Enter surgery history"),
+                  field("Chronic Illness", chronicCtrl, "Enter illnesses"),
+                  field("Insurance Provider (optional)", insuranceCtrl,
+                      "Enter provider"),
 
-              // Blue Card Container
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 20),
-                padding: const EdgeInsets.symmetric(vertical: 25, horizontal: 25),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF7388F6),
-                  borderRadius: BorderRadius.circular(25),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildLabel("Allergies"),
-                    _buildDropdown(),
+                  const SizedBox(height: 12),
 
-                    const SizedBox(height: 15),
-                    _buildLabel("current medication"),
-                    _buildTextField(_medicationController, "enter current medications", false),
-
-                    const SizedBox(height: 15),
-                    _buildLabel("past surgery"),
-                    _buildTextField(_surgeryController, "enter past surgeries", false),
-
-                    const SizedBox(height: 15),
-                    _buildLabel("chronic illnesses"),
-                    _buildTextField(_chronicController, "enter chronic illnesses", false),
-
-                    const SizedBox(height: 15),
-                    _buildLabel("Insurance provider(if any)"),
-                    _buildTextField(_insuranceController, "enter insurance provider", false),
-
-                    const SizedBox(height: 25),
-
-                    // Buttons Row
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        _buildButton("Edit", () {}),
-                        _buildButton("Save", () {}),
-                      ],
-                    ),
-                  ],
-                ),
+                  ElevatedButton(
+                      onPressed: nextPage,
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF2F2F2F),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 50, vertical: 10)),
+                      child: const Text("Next",
+                          style:
+                              TextStyle(fontSize: 15, color: Colors.white))),
+                ],
               ),
-
-              const SizedBox(height: 40),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLabel(String text) {
-    return Text(
-      text,
-      style: GoogleFonts.poppins(
-        color: Colors.black,
-        fontSize: 13,
-        fontWeight: FontWeight.w500,
-      ),
-    );
-  }
-
-  Widget _buildTextField(
-      TextEditingController controller, String hint, bool obscure) {
-    return TextField(
-      controller: controller,
-      obscureText: obscure,
-      style: GoogleFonts.poppins(
-        fontSize: 14,
-        color: Colors.black,
-      ),
-      decoration: InputDecoration(
-        hintText: hint,
-        hintStyle: GoogleFonts.poppins(
-          color: Colors.grey[700],
-          fontSize: 13,
-        ),
-        contentPadding:
-            const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-        filled: true,
-        fillColor: Colors.white,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide.none,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDropdown() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          isExpanded: true,
-          hint: Text(
-            "Select Allergy",
-            style: GoogleFonts.poppins(
-              fontSize: 13,
-              color: Colors.grey[700],
             ),
-          ),
-          value: _selectedAllergy,
-          items: _allergyOptions.map((item) {
-            return DropdownMenuItem<String>(
-              value: item,
-              child: Text(item),
-            );
-          }).toList(),
-          onChanged: (val) {
-            setState(() {
-              _selectedAllergy = val;
-            });
-          },
-        ),
-      ),
-    );
-  }
-
-  Widget _buildButton(String label, VoidCallback onPressed) {
-    return ElevatedButton(
-      onPressed: onPressed,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFF2F2F2F),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(6),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 8),
-      ),
-      child: Text(
-        label,
-        style: GoogleFonts.poppins(
-          fontSize: 14,
-          color: Colors.white,
-          fontWeight: FontWeight.w600,
+          ],
         ),
       ),
     );

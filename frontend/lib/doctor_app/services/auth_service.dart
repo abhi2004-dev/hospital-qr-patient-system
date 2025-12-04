@@ -2,76 +2,72 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
-  // Keys for SharedPreferences
-  static const String _keyToken = 'token'; // used by ApiService.getDoctorProfile
-  static const String _keyDoctorId = 'doctorId';
-  static const String _keyDoctorName = 'doctorName';
-  static const String _keyDoctorEmail = 'doctorEmail';
-  static const String _keyUserRole = 'loggedInRole';
+  // SharedPreferences keys – used across app
+  static const String keyToken = 'doctor_token';
+  static const String keyDoctorId = 'doctor_id';
+  static const String keyDoctorName = 'doctor_name';
+  static const String keyDoctorEmail = 'doctor_email';
+  static const String keyDoctorSpecialization = 'doctor_specialization';
+  static const String keyRole = 'loggedInRole';
 
-  /// New: Save full doctor session after login
+  /// Save DOCTOR login session
   static Future<void> saveDoctorSession({
     required String token,
     required String id,
     required String name,
     required String email,
+    required String specialization,
   }) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_keyToken, token);
-    await prefs.setString(_keyDoctorId, id);
-    await prefs.setString(_keyDoctorName, name);
-    await prefs.setString(_keyDoctorEmail, email);
-    await prefs.setString(_keyUserRole, 'doctor');
-  }
-
-  /// Backwards compatibility for existing calls
-  static Future<void> saveToken(String token) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_keyToken, token);
+    await prefs.setString(keyToken, token);
+    await prefs.setString(keyDoctorId, id);
+    await prefs.setString(keyDoctorName, name);
+    await prefs.setString(keyDoctorEmail, email);
+    await prefs.setString(keyDoctorSpecialization, specialization);
+    await prefs.setString(keyRole, 'doctor');
   }
 
   static Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_keyToken);
-  }
-
-  static Future<void> saveDoctorName(String name) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_keyDoctorName, name);
-  }
-
-  static Future<String?> getDoctorName() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_keyDoctorName);
+    return prefs.getString(keyToken);
   }
 
   static Future<String?> getDoctorId() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_keyDoctorId);
+    return prefs.getString(keyDoctorId);
+  }
+
+  static Future<String?> getDoctorName() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(keyDoctorName);
   }
 
   static Future<String?> getDoctorEmail() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_keyDoctorEmail);
+    return prefs.getString(keyDoctorEmail);
+  }
+
+  static Future<String?> getDoctorSpecialization() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(keyDoctorSpecialization);
   }
 
   static Future<bool> isDoctorLoggedIn() async {
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString(_keyToken);
+    final token = prefs.getString(keyToken);
     return token != null && token.isNotEmpty;
   }
 
   static Future<void> clearAll() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_keyToken);
-    await prefs.remove(_keyDoctorId);
-    await prefs.remove(_keyDoctorName);
-    await prefs.remove(_keyDoctorEmail);
+    await prefs.remove(keyToken);
+    await prefs.remove(keyDoctorId);
+    await prefs.remove(keyDoctorName);
+    await prefs.remove(keyDoctorEmail);
+    await prefs.remove(keyDoctorSpecialization);
 
-    // clear global role if it was doctor
-    final role = prefs.getString(_keyUserRole);
-    if (role == 'doctor') {
-      await prefs.remove(_keyUserRole);
+    if (prefs.getString(keyRole) == 'doctor') {
+      await prefs.remove(keyRole);
     }
   }
 }
