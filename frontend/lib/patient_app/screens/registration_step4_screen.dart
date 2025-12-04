@@ -81,7 +81,8 @@ class _RegistrationStep4ScreenState extends State<RegistrationStep4Screen> {
           guardianContact: widget.guardianContact,
           relation: widget.relation,
 
-          allergy: allergy!,
+          // 🔹 pass as List<String> (fix)
+          allergy: [allergy!],
           medications: medsCtrl.text.trim(),
           pastSurgery: surgeryCtrl.text.trim(),
           chronicIllness: chronicCtrl.text.trim(),
@@ -95,21 +96,25 @@ class _RegistrationStep4ScreenState extends State<RegistrationStep4Screen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label,
-            style: GoogleFonts.poppins(
-                fontSize: 14, fontWeight: FontWeight.w600)),
+        Text(
+          label,
+          style:
+              GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600),
+        ),
         const SizedBox(height: 6),
         TextField(
           controller: ctrl,
           decoration: InputDecoration(
-              hintText: hint,
-              filled: true,
-              fillColor: Colors.white,
-              border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide.none),
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 12)),
+            hintText: hint,
+            filled: true,
+            fillColor: Colors.white,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide.none,
+            ),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          ),
         ),
         const SizedBox(height: 16),
       ],
@@ -120,15 +125,19 @@ class _RegistrationStep4ScreenState extends State<RegistrationStep4Screen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
-          color: Colors.white, borderRadius: BorderRadius.circular(10)),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+      ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           isExpanded: true,
           value: allergy,
           hint: const Text("Select allergy"),
           items: allergyOptions
-              .map((item) =>
-                  DropdownMenuItem(value: item, child: Text(item)))
+              .map(
+                (item) =>
+                    DropdownMenuItem(value: item, child: Text(item)),
+              )
               .toList(),
           onChanged: (v) => setState(() => allergy = v),
         ),
@@ -150,16 +159,23 @@ class _RegistrationStep4ScreenState extends State<RegistrationStep4Screen> {
             Image.asset('assets/logo.png', width: 110, height: 110),
 
             const SizedBox(height: 10),
-            Text("Health meets Technology..",
-                style: GoogleFonts.montserrat(
-                    fontSize: 14, fontWeight: FontWeight.w400)),
+            Text(
+              "Health meets Technology..",
+              style: GoogleFonts.montserrat(
+                fontSize: 14,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
 
             const SizedBox(height: 16),
-            Text("MEDICAL INFORMATION",
-                style: GoogleFonts.poppins(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
-                    color: Color(0xFF0B0B5A))),
+            Text(
+              "MEDICAL INFORMATION",
+              style: GoogleFonts.poppins(
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+                color: const Color(0xFF0B0B5A),
+              ),
+            ),
 
             const SizedBox(height: 25),
 
@@ -173,9 +189,13 @@ class _RegistrationStep4ScreenState extends State<RegistrationStep4Screen> {
               ),
               child: Column(
                 children: [
-                  Text("Allergies",
-                      style: GoogleFonts.poppins(
-                          fontSize: 14, fontWeight: FontWeight.w600)),
+                  Text(
+                    "Allergies",
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                   const SizedBox(height: 6),
                   dropdown(),
                   const SizedBox(height: 16),
@@ -183,20 +203,28 @@ class _RegistrationStep4ScreenState extends State<RegistrationStep4Screen> {
                   field("Current Medication", medsCtrl, "Enter medications"),
                   field("Past Surgery", surgeryCtrl, "Enter surgery history"),
                   field("Chronic Illness", chronicCtrl, "Enter illnesses"),
-                  field("Insurance Provider (optional)", insuranceCtrl,
-                      "Enter provider"),
+                  field(
+                    "Insurance Provider (optional)",
+                    insuranceCtrl,
+                    "Enter provider",
+                  ),
 
                   const SizedBox(height: 12),
 
                   ElevatedButton(
-                      onPressed: nextPage,
-                      style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF2F2F2F),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 50, vertical: 10)),
-                      child: const Text("Next",
-                          style:
-                              TextStyle(fontSize: 15, color: Colors.white))),
+                    onPressed: nextPage,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF2F2F2F),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 50,
+                        vertical: 10,
+                      ),
+                    ),
+                    child: const Text(
+                      "Next",
+                      style: TextStyle(fontSize: 15, color: Colors.white),
+                    ),
+                  ),
                 ],
               ),
             ),

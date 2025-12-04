@@ -4,7 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
   // ⚠️ Make sure this matches your CURRENT backend IP
-  // Example: "http://10.152.28.251:5000"
+  // Example for WiFi device: "http://192.168.x.x:5000"
+  // Example for emulator: "http://10.0.2.2:5000"
   static const String base = "http://192.168.252.251:5000";
 
   // =====================================================
@@ -24,17 +25,18 @@ class AuthService {
 
   // Helper specifically for patient keys used by UI
   static Future<void> _savePatientFields(
-      Map<String, dynamic> user, {
-        String? fallbackName,
-        String? fallbackPhone,
-        String? fallbackEmail,
-      }) async {
+    Map<String, dynamic> user, {
+    String? fallbackName,
+    String? fallbackPhone,
+    String? fallbackEmail,
+  }) async {
     final prefs = await SharedPreferences.getInstance();
 
     final String id = (user["_id"] ??
-        user["id"] ??
-        user["patientId"] ??
-        "").toString();
+            user["id"] ??
+            user["patientId"] ??
+            "")
+        .toString();
 
     final String name = (user["name"] ?? fallbackName ?? "").toString();
     final String phone = (user["phone"] ?? fallbackPhone ?? "").toString();
@@ -63,7 +65,7 @@ class AuthService {
   // =====================================================
   static Future<Map<String, dynamic>?> getSavedUser() async {
     final prefs = await SharedPreferences.getInstance();
-    String? user = prefs.getString("user");
+    final String? user = prefs.getString("user");
     if (user == null) return null;
     return jsonDecode(user);
   }
@@ -77,7 +79,7 @@ class AuthService {
   }
 
   // =====================================================
-  // REGISTER PATIENT
+  // REGISTER PATIENT (field-by-field)
   // =====================================================
   static Future<Map<String, dynamic>> registerPatient({
     required String name,
@@ -107,7 +109,8 @@ class AuthService {
 
       if (data["success"] == true) {
         // handle both shapes:
-        // { success, token, user } OR { success, body: { token, patient } }
+        // { success, token, user }
+        // OR { success, body: { token, patient } }
         final body = data["body"] ?? {};
         final user = data["user"] ??
             body["patient"] ??
@@ -136,6 +139,49 @@ class AuthService {
       return data;
     } catch (e) {
       print("❌ Patient Register Error: $e");
+      return {"success": false, "message": "Network error"};
+    }
+  }
+
+  // =====================================================
+  // REGISTER PATIENT (FULL PAYLOAD VERSION)
+  // You can send a ready Map instead of individual fields.
+  // =====================================================
+  static Future<Map<String, dynamic>> registerPatientFull(
+      Map<String, dynamic> payload) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$base/api/auth/patient/register'),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(payload),
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (data["success"] == true) {
+        final body = data["body"] ?? {};
+        final user = data["user"] ??
+            body["patient"] ??
+            body["user"] ??
+            <String, dynamic>{};
+
+        final String token =
+            (data["token"] ?? body["token"] ?? "").toString();
+
+        if (token.isNotEmpty) {
+          await saveLoginData(
+            token: token,
+            user: user,
+            role: "patient",
+          );
+        }
+
+        await _savePatientFields(user);
+      }
+
+      return data;
+    } catch (e) {
+      print("❌ Patient Register Error (full): $e");
       return {"success": false, "message": "Network error"};
     }
   }
@@ -254,20 +300,5 @@ class AuthService {
       print("❌ Fetch Patient Error: $e");
       return {"success": false, "message": "Network error"};
     }
-  }
-}
-static Future<Map<String, dynamic>> registerPatientFull(
-    Map<String, dynamic> payload) async {
-  try {
-    final response = await http.post(
-      Uri.parse('$base/api/auth/patient/register'),
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode(payload),
-    );
-
-    return jsonDecode(response.body);
-  } catch (e) {
-    print("❌ Patient Register Error: $e");
-    return {"success": false, "message": "Network error"};
   }
 }
