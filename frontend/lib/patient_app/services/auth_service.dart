@@ -256,3 +256,18 @@ class AuthService {
     }
   }
 }
+static Future<Map<String, dynamic>> registerPatientFull(
+    Map<String, dynamic> payload) async {
+  try {
+    final response = await http.post(
+      Uri.parse('$base/api/auth/patient/register'),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode(payload),
+    );
+
+    return jsonDecode(response.body);
+  } catch (e) {
+    print("❌ Patient Register Error: $e");
+    return {"success": false, "message": "Network error"};
+  }
+}

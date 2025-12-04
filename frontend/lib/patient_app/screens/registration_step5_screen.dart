@@ -18,7 +18,7 @@ class RegistrationStep5Screen extends StatefulWidget {
   final String guardianContact;
   final String relation;
 
-  final String allergy;
+  final List<String> allergy;     // <-- changed from String to List
   final String medications;
   final String pastSurgery;
   final String chronicIllness;
@@ -57,40 +57,55 @@ class _RegistrationStep5ScreenState extends State<RegistrationStep5Screen> {
   bool loading = false;
 
   void submit() async {
-    if (emergencyNameCtrl.text.trim().isEmpty ||
-        emergencyContactCtrl.text.trim().isEmpty ||
-        relationshipCtrl.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please fill all fields")),
-      );
-      return;
-    }
-
-    setState(() => loading = true);
-
-    final data = await AuthService.registerPatient(
-      name: widget.name,
-      dob: widget.dob,
-      email: widget.email,
-      phone: widget.phone,
-      address: "N/A",
-      uniqueID: "AUTO",
-      password: widget.password,
+  if (emergencyNameCtrl.text.trim().isEmpty ||
+      emergencyContactCtrl.text.trim().isEmpty ||
+      relationshipCtrl.text.trim().isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Please fill all fields")),
     );
-
-    setState(() => loading = false);
-
-    if (data["success"] == true) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const DashboardScreen()),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(data["message"] ?? "Registration failed")),
-      );
-    }
+    return;
   }
+
+  setState(() => loading = true);
+
+  final data = await AuthService.registerPatient(
+    email: widget.email,
+    password: widget.password,
+
+    name: widget.name,
+    dob: widget.dob,
+    phone: widget.phone,
+    gender: widget.gender,
+    bloodGroup: widget.bloodGroup,
+
+    guardianName: widget.guardianName,
+    guardianContact: widget.guardianContact,
+    relation: widget.relation,
+
+    allergy: widget.allergy,
+    medications: widget.medications,
+    pastSurgery: widget.pastSurgery,
+    chronicIllness: widget.chronicIllness,
+    insurance: widget.insurance,
+
+    emergencyName: emergencyNameCtrl.text.trim(),
+    emergencyContact: emergencyContactCtrl.text.trim(),
+    emergencyRelation: relationshipCtrl.text.trim(),
+  );
+
+  setState(() => loading = false);
+
+  if (data["success"] == true) {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const DashboardScreen()),
+    );
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(data["message"] ?? "Registration failed")),
+    );
+  }
+}
 
   Widget field(String label, TextEditingController ctrl, String hint) {
     return Column(

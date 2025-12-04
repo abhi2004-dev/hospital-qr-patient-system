@@ -9,15 +9,39 @@ const PrescriptionSchema = new mongoose.Schema({
 });
 
 const PatientSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  phone: String,
+  // STEP 1
   email: String,
+  passwordHash: String,             // if you add login later
+  photoUrl: String,                 // (optional: future)
+
+  // STEP 2 – Personal Info
+  name: { type: String, required: true },
   dob: Date,
+  phone: String,
+  gender: String,
   bloodGroup: String,
-  allergies: [String],
+
+  // STEP 3 – Guardian Info
+  guardianName: String,
   guardianContact: String,
-  qrId: { type: String, unique: true, index: true }, // stored QR id
+  relation: String,
+
+  // STEP 4 – Medical Info
+  allergy: String,
+  medications: String,
+  pastSurgery: String,
+  chronicIllness: String,
+  insurance: String,
+
+  // STEP 5 – Emergency Info
+  emergencyName: String,
+  emergencyContact: String,
+  emergencyRelation: String,
+
+  // QR + Prescriptions
+  qrId: { type: String, unique: true, index: true },
   prescriptions: [PrescriptionSchema],
+
   createdAt: { type: Date, default: Date.now }
 });
 
