@@ -12,7 +12,7 @@ import 'emergency_info_screen.dart';
 import 'help_screen.dart';
 import 'settings_screen.dart';
 
-const String _baseUrl = "http://192.168.252.251:5000";
+const String _baseUrl = "http://10.12.94.251:5000";
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({Key? key}) : super(key: key);

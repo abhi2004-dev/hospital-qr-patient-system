@@ -9,10 +9,11 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  http: ^1.2.0 
+
+  # HTTP — keep only one version
+  http: ^1.5.0
 
   cupertino_icons: ^1.0.8
-  http: ^1.5.0
   shared_preferences: ^2.5.3
   image_picker: ^0.8.7+5
   qr_flutter: ^4.1.0

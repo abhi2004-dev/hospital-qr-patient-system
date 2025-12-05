@@ -11,7 +11,7 @@ const String appName = "Hospital QR Patient System";
 /// BACKEND BASE URL
 /// ---------------------------
 /// IMPORTANT: Replace with your own IPv4 address if needed
-const String baseUrl = "http://192.168.252.251:5000";
+const String baseUrl = "http://10.12.94.251:5000";
 
 /// ---------------------------
 /// STORAGE KEYS
