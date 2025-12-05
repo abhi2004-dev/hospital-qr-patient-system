@@ -6,7 +6,7 @@ class AuthService {
   // ⚠️ Make sure this matches your CURRENT backend IP
   // Example for WiFi device: "http://192.168.x.x:5000"
   // Example for emulator: "http://10.0.2.2:5000"
-  static const String base = "http://192.168.252.251:5000";
+  static const String base = "http://10.12.94.251:5000";
 
   // =====================================================
   // SAVE USER LOGIN DATA LOCALLY  (TOKEN + USER DETAILS)

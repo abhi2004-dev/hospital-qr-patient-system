@@ -3,7 +3,7 @@
 const String appName = "Hospital QR Doctor App";
 
 /// Your backend IP (no /api at end)
-const String baseUrl = "http://192.168.252.251:5000";
+const String baseUrl = "http://10.12.94.251:5000";
 
 /// Optional alias if some old code still uses `base`
 const String base = baseUrl;

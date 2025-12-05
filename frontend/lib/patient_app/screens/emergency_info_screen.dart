@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
-const String _baseUrl = "http://192.168.252.251:5000";
+const String _baseUrl = "http://10.12.94.251:5000";
 
 class EmergencyInfoScreen extends StatefulWidget {
   const EmergencyInfoScreen({Key? key}) : super(key: key);

@@ -7,7 +7,7 @@ import 'package:http/http.dart' as http;
 
 import 'doctor_login_screen.dart';
 
-const String _baseUrl = "http://192.168.252.251:5000";
+const String _baseUrl = "http://10.12.94.251:5000";
 
 class DoctorRegisterScreen2 extends StatefulWidget {
   final String fullName, email, phone, hospitalName, specialization, userId;
